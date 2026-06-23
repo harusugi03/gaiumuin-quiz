@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>証券外務員一種 ○×クイズ</title>
+<style>
+  :root {
+    --primary: #3558C7;
+    --primary-light: #4a6fd8;
+    --primary-dark: #2540a0;
+    --accent: #e84040;
+    --bg: #f0f4ff;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --correct: #16a34a;
+    --wrong: #dc2626;
+    --skip-color: #d97706;
+    --border: #dde3f5;
+    --mark-bg: #fff3cd;
+    --mark-color: #b45309;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: var(--primary);
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(53,88,199,0.3);
+  }
+  .app-title { font-size: 1rem; font-weight: 700; }
+  .header-stats { display: flex; gap: 12px; font-size: 0.82rem; }
+  .stat-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 3px 10px;
+  }
+  .stat-badge.skip { background: rgba(217,119,6,0.5); }
+
+  /* ===== LANG TOGGLE ===== */
+  .lang-bar {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 10px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  .lang-btn {
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  /* ===== START SCREEN ===== */
+  .start-screen {
+    max-width: 520px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+  .start-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(53,88,199,0.1);
+    text-align: center;
+  }
+  .start-card h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 8px; }
+  .start-card p { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+  .option-group { margin: 16px 0; text-align: left; }
+  .option-group label { font-size: 0.9rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 8px; }
+  .option-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opt-btn {
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 10px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+  }
+  .opt-btn.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+  }
+  .section-checks { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sec-check {
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 10px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 0.83rem;
+    transition: all 0.2s;
+  }
+  .sec-check.active {
+    border-color: var(--primary-light);
+    background: #eef2ff;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .start-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .start-btn:hover { background: var(--primary-dark); }
+
+  /* ===== QUIZ SCREEN ===== */
+  .quiz-screen {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .progress-wrap {
+    margin-bottom: 16px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .section-tag {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .question-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 20px rgba(53,88,199,0.08);
+    margin-bottom: 16px;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    margin-bottom: 0;
+  }
+  .question-text mark {
+    background: var(--mark-bg);
+    color: var(--mark-color);
+    border-radius: 3px;
+    padding: 0 2px;
+    font-weight: 600;
+  }
+
+  /* TF buttons */
+  .tf-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .tf-btn {
+    flex: 1;
+    padding: 18px;
+    border: 3px solid var(--border);
+    border-radius: 14px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+  .tf-btn.maru { color: #2563eb; border-color: #bfdbfe; }
+  .tf-btn.batu { color: #dc2626; border-color: #fecaca; }
+  .tf-btn.maru:hover { background: #eff6ff; }
+  .tf-btn.batu:hover { background: #fff5f5; }
+
+  /* MC buttons */
+  .mc-choices { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .mc-btn {
+    text-align: left;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    font-size: 0.92rem;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: all 0.2s;
+  }
+  .mc-btn:hover { border-color: var(--primary-light); background: #eef2ff; }
+
+  /* Feedback */
+  .feedback-card {
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    display: none;
+  }
+  .feedback-card.show { display: block; }
+  .feedback-card.correct {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    color: #14532d;
+  }
+  .feedback-card.wrong {
+    background: #fff5f5;
+    border: 2px solid #fca5a5;
+    color: #7f1d1d;
+  }
+  .feedback-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .feedback-card mark {
+    background: #fef08a;
+    color: #713f12;
+    border-radius: 3px;
+    padding: 0 2px;
+    font-weight: 600;
+  }
+
+  /* Answer buttons */
+  .answer-revealed .tf-btn.maru { opacity: 0.5; }
+  .answer-revealed .tf-btn.batu { opacity: 0.5; }
+  .answer-revealed .tf-btn.selected-correct { opacity: 1; background: #dcfce7; border-color: #86efac; }
+  .answer-revealed .tf-btn.selected-wrong { opacity: 1; background: #fee2e2; border-color: #fca5a5; }
+  .answer-revealed .tf-btn.correct-ans { opacity: 1; background: #dcfce7; border-color: #86efac; }
+
+  .answer-revealed .mc-btn { opacity: 0.5; pointer-events: none; }
+  .answer-revealed .mc-btn.selected-correct { opacity: 1; background: #dcfce7; border-color: #86efac; color: #14532d; font-weight: 700; }
+  .answer-revealed .mc-btn.selected-wrong { opacity: 1; background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
+  .answer-revealed .mc-btn.correct-ans { opacity: 1; background: #dcfce7; border-color: #86efac; color: #14532d; font-weight: 700; }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-next { background: var(--primary); color: white; }
+  .btn-next:hover { background: var(--primary-dark); }
+  .btn-skip { background: #fef3c7; color: #92400e; border: 2px solid #fde68a; }
+  .btn-skip:hover { background: #fde68a; }
+
+  /* ===== RESULT SCREEN ===== */
+  .result-screen {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .result-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 24px;
+    box-shadow: 0 4px 20px rgba(53,88,199,0.1);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .result-emoji { font-size: 3rem; margin-bottom: 12px; }
+  .result-card h2 { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
+  .score-big { font-size: 3rem; font-weight: 800; color: var(--primary); }
+  .score-label { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+  .score-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .score-item {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 12px 8px;
+  }
+  .score-item .val { font-size: 1.5rem; font-weight: 700; }
+  .score-item .lbl { font-size: 0.75rem; color: var(--muted); }
+  .score-item.ok .val { color: var(--correct); }
+  .score-item.ng .val { color: var(--wrong); }
+  .score-item.sk .val { color: var(--skip-color); }
+
+  .retry-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 32px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin: 6px;
+  }
+  .retry-btn:hover { background: var(--primary-dark); }
+  .retry-btn.outline {
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .retry-btn.outline:hover { background: var(--bg); }
+
+  /* Review list */
+  .review-toggle {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--wrong);
+    margin-bottom: 4px;
+  }
+  .review-list { display: none; }
+  .review-list.open { display: block; }
+  .review-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--wrong);
+  }
+  .review-q { font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px; }
+  .review-ans {
+    font-size: 0.85rem;
+    color: var(--correct);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .review-fb {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ===== UTILITIES ===== */
+  .hidden { display: none !important; }
+  ruby rt { font-size: 0.55em; }
+
+  /* ===== FIREBASE AUTH UI ===== */
+  #authBar {
+    background: var(--primary-dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-size: 0.82em;
+    gap: 10px;
+  }
+  #authBar.hidden { display: none !important; }
+  .auth-user { display: flex; align-items: center; gap: 8px; }
+  .auth-avatar { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); }
+  .auth-btn {
+    background: #fff;
+    color: var(--primary-dark);
+    border: none;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.85em;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .auth-btn:hover { background: #e8eeff; }
+
+  /* ===== REVIEW MODE CARD ===== */
+  .review-mode-card {
+    background: #fff7ed;
+    border: 2px solid #f59e0b;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .review-mode-card .rm-info { flex: 1; }
+  .review-mode-card .rm-title { font-weight: 700; font-size: 1em; color: #92400e; }
+  .review-mode-card .rm-count { font-size: 0.82em; color: #b45309; margin-top: 2px; }
+  .review-mode-btn {
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .review-mode-btn:hover { background: #d97706; }
+  #reviewModeCard { display: none; }
+</style>
+</head>
+<body>
+
+<!-- FIREBASE AUTH BAR -->
+<div id="authBar" class="hidden">
+  <div class="auth-user">
+    <img id="authAvatar" class="auth-avatar" src="" style="display:none">
+    <span id="authName">ログインしていません</span>
+  </div>
+  <button class="auth-btn" id="authActionBtn" onclick="toggleAuth()">Googleでログイン</button>
+</div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <span class="app-title" onclick="goHome()" style="cursor:pointer;" title="ホームに戻る">📊 外務員一種 ○×クイズ</span>
+  <div class="header-stats" id="headerStats"></div>
+</header>
+
+<!-- LANG BAR -->
+<div class="lang-bar" id="langBar">
+  <button class="lang-btn active" onclick="setLang('ja')">📖 日本語</button>
+  <button class="lang-btn" onclick="setLang('furigana')">あ ふりがな</button>
+  <button class="lang-btn" onclick="setLang('en')">🌐 English</button>
+</div>
+
+<!-- START SCREEN -->
+<div class="start-screen" id="startScreen">
+  <div class="start-card">
+    <h2>🎯 クイズ設定</h2>
+    <p>セクション・問題数・シャッフルを選んでスタート</p>
+
+    <div class="option-group">
+      <label>📚 セクション選択</label>
+      <div class="section-checks" id="secChecks"></div>
+    </div>
+
+    <div class="option-group">
+      <label>🔢 問題数</label>
+      <div class="option-row" id="countOpts">
+        <button class="opt-btn active" data-val="10" onclick="selectCount(this)">10問</button>
+        <button class="opt-btn" data-val="20" onclick="selectCount(this)">20問</button>
+        <button class="opt-btn" data-val="999" onclick="selectCount(this)">全問</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>🔀 シャッフル</label>
+      <div class="option-row" id="shuffleOpts">
+        <button class="opt-btn active" data-val="1" onclick="selectShuffle(this)">あり</button>
+        <button class="opt-btn" data-val="0" onclick="selectShuffle(this)">なし</button>
+      </div>
+    </div>
+
+    <!-- REVIEW MODE (shown when logged in with past mistakes) -->
+    <div class="review-mode-card" id="reviewModeCard">
+      <div class="rm-info">
+        <div class="rm-title">📚 復習モード</div>
+        <div class="rm-count" id="reviewModeCount">過去の間違い問題を練習</div>
+      </div>
+      <button class="review-mode-btn" onclick="startReviewMode()">復習する →</button>
+    </div>
+
+    <button class="start-btn" onclick="startQuiz()">▶ スタート</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div class="quiz-screen hidden" id="quizScreen">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progLabel">1 / 10</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="section-tag" id="secTag"></div>
+
+  <div class="question-card" id="questionCard">
+    <div class="question-text" id="questionText"></div>
+    <div class="tf-buttons hidden" id="tfButtons">
+      <button class="tf-btn maru" onclick="answerTF(true)">○</button>
+      <button class="tf-btn batu" onclick="answerTF(false)">×</button>
+    </div>
+    <div class="mc-choices hidden" id="mcChoices"></div>
+  </div>
+
+  <div class="feedback-card" id="feedbackCard">
+    <div class="feedback-header" id="feedbackHeader"></div>
+    <div id="feedbackText"></div>
+  </div>
+
+  <div class="action-row">
+    <button class="action-btn btn-skip" id="skipBtn" onclick="skipQ()">⏭ スキップ</button>
+    <button class="action-btn btn-next hidden" id="nextBtn" onclick="nextQ()">次へ →</button>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="result-screen hidden" id="resultScreen">
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <h2>結果発表</h2>
+    <div class="score-big" id="scoreBig"></div>
+    <div class="score-label">正解率</div>
+    <div class="score-grid">
+      <div class="score-item ok"><div class="val" id="scoreOk"></div><div class="lbl">✅ 正解</div></div>
+      <div class="score-item ng"><div class="val" id="scoreNg"></div><div class="lbl">❌ 不正解</div></div>
+      <div class="score-item sk"><div class="val" id="scoreSk"></div><div class="lbl">⏭ スキップ</div></div>
+    </div>
+    <div>
+      <button class="retry-btn" onclick="retryWrong()">❌ 間違い直し</button>
+      <button class="retry-btn outline" onclick="goStart()">🔄 最初から</button>
+    </div>
+  </div>
+
+  <div id="reviewSection">
+    <div class="review-toggle" onclick="toggleReview()">
+      <span>❌ 間違えた問題一覧</span><span id="reviewArrow">▼</span>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+
+<script type="module">
+// =============================================
+// QUESTION BANK
+// =============================================
+const QS = [
+  // ===== 金商法 =====
+  {n:1, sec:"金商法", type:"tf",
+   q:"有価証券の売買の<mark>媒介</mark>とは<mark>自己の名</mark>をもって<mark>委託者の計算</mark>で有価証券を買い入れ又は売却すること等を引き受けることをいう。",
+   tf:false,
+   fb:"これは<mark>取次</mark>の説明です。媒介とは、顧客と顧客の間の有価証券売買を業者が仲介し、売買を成立させることです。",
+   fb_en:"This describes 'toitsugu' (acting as agent in one's own name). 'Baikai' (mediation) means intermediating a securities transaction between two customers to bring it to completion.",
+   q_en:"In the Financial Instruments and Exchange Act, 'mediation' of a securities sale/purchase refers to accepting orders to purchase or sell securities in one's own name for the account of a client."
+  },
+  {n:2, sec:"金商法", type:"tf",
+   q:"有価証券の売買の<mark>媒介</mark>とは、顧客と顧客との間での有価証券の売買を業者等が<mark>仲介</mark>し、売買を成立させることである。",
+   tf:true,
+   fb:"○正解。これが媒介（仲介）の正しい定義です。顧客間の売買を業者が仲介する行為です。",
+   fb_en:"Correct. This is the proper definition of 'baikai' (mediation): the firm intermediates a transaction between two customers."
+  },
+  {n:3, sec:"金商法", type:"tf",
+   q:"金融業者は内閣総理大臣の<mark>登録</mark>を受け、金融商品取引業を営むものである。",
+   tf:true,
+   fb:"○正解。金融商品取引業者は内閣総理大臣への<mark>登録</mark>が必要です。",
+   fb_en:"Correct. Financial instruments business operators must be registered with the Prime Minister."
+  },
+  {n:4, sec:"金商法", type:"tf",
+   q:"金融商品取引法は、金融業者を行うものに関し必要な事項を定め、<mark>金融業者の最大の利益</mark>に資することを目的とする。",
+   tf:false,
+   fb:"×不正解。金商法の目的は「<mark>国民経済の発展</mark>及び<mark>投資者の保護</mark>に資すること」です。業者の利益ではありません。",
+   fb_en:"Wrong. The purpose of the FIEA is to contribute to the development of the national economy and the protection of investors — not to maximize the interests of financial firms."
+  },
+  {n:5, sec:"金商法", type:"tf",
+   q:"金融商品取引法上の<mark>有価証券</mark>には、株券や債券のほか、<mark>支払い手形や小切手</mark>も含まれる。",
+   tf:false,
+   fb:"×不正解。金商法上の有価証券には<mark>支払手形・小切手は含まれません</mark>。株券・債券・受益証券などが含まれます。",
+   fb_en:"Wrong. Bills of exchange and checks are NOT included as securities under the FIEA."
+  },
+  {n:6, sec:"金商法", type:"tf",
+   q:"金融業者が<mark>PTS運営業務</mark>を行うには、内閣総理大臣へ<mark>届出</mark>を行わなければならない。",
+   tf:false,
+   fb:"×不正解。PTS運営業務を行うには届出ではなく<mark>認可</mark>が必要です。",
+   fb_en:"Wrong. Operating a PTS (Proprietary Trading System) requires government authorization (ninka), not a simple notification."
+  },
+  {n:7, sec:"金商法", type:"tf",
+   q:"金融業者は、内閣総理大臣から<mark>免許</mark>を受けたものでなければ行うことができない。",
+   tf:false,
+   fb:"×不正解。金融商品取引業者は免許ではなく<mark>登録</mark>制です。",
+   fb_en:"Wrong. Financial instruments business operators operate under a registration (touroku) system, not a licensing system."
+  },
+  {n:8, sec:"金商法", type:"tf",
+   q:"<mark>外務員</mark>は、その所属する金融業者等に代わって有価証券の売買等法律に規定する行為に関し、<mark>一切の</mark>裁判上及び裁判外の行為を行う権限を有する。",
+   tf:false,
+   fb:"×不正解。外務員が有する権限は<mark>裁判外の行為のみ</mark>です。裁判上の行為は含まれません。",
+   fb_en:"Wrong. Registered representatives (gaiin) have authority only for extrajudicial acts, not judicial acts."
+  },
+  {n:9, sec:"金商法", type:"tf",
+   q:"業者等は、金融商品取引契約を締結しようとするとき、<mark>あらかじめすべての顧客</mark>に対して契約締結前交付書面を交付しなければならない。",
+   tf:false,
+   fb:"×不正解。<mark>特定投資家</mark>（プロ投資家）との取引の場合は契約締結前交付書面の交付義務が除かれます。",
+   fb_en:"Wrong. The pre-contract document delivery requirement is waived when dealing with 'tokutei toushika' (qualified institutional investors / professional investors)."
+  },
+  {n:10, sec:"金商法", type:"tf",
+   q:"業者等は、顧客から預託を受けた有価証券について<mark>自己の固有財産</mark>として管理しなければならない。",
+   tf:false,
+   fb:"×不正解。顧客から預託を受けた有価証券は<mark>自己の財産と分別して</mark>管理しなければなりません。",
+   fb_en:"Wrong. Customer-deposited securities must be managed separately from the firm's own assets (segregation requirement)."
+  },
+  {n:11, sec:"金商法", type:"tf",
+   q:"業者は顧客の<mark>損失を補填</mark>するため、財産上の利益を提供する行為は、<mark>顧客からの要望があった場合のみ</mark>可能である。",
+   tf:false,
+   fb:"×不正解。損失補填は<mark>顧客からの要望があっても不可</mark>です。いかなる場合も禁止されています。",
+   fb_en:"Wrong. Loss compensation is prohibited even when requested by the customer. It is prohibited under any circumstances."
+  },
+  {n:12, sec:"金商法", type:"tf",
+   q:"業者が<mark>特定投資家</mark>との間で取引を行う場合は、<mark>すべての行為規制</mark>は適用除外とされている。",
+   tf:false,
+   fb:"×不正解。特定投資家との取引でも<mark>損失補填・断定的判断の提供は禁止</mark>されており、すべての行為規制が除外されるわけではありません。",
+   fb_en:"Wrong. Even with qualified investors, prohibitions on loss compensation and providing definitive judgments (断定的判断) still apply."
+  },
+  {n:13, sec:"金商法", type:"tf",
+   q:"業者等が、<mark>特定投資家</mark>との間で取引を行う場合は、<mark>契約締結前交付書面</mark>は交付する必要はないとされている。",
+   tf:true,
+   fb:"○正解。特定投資家との取引では契約締結前交付書面の交付義務は適用除外です。",
+   fb_en:"Correct. The pre-contract document delivery requirement is waived when dealing with qualified investors."
+  },
+  {n:14, sec:"金商法", type:"tf",
+   q:"有価証券の引受人となった業者は、その有価証券を売却する場合引受人となった日から<mark>2か月</mark>を経過するまでに買主に対し貸付代金を貸し付けてはならない。",
+   tf:false,
+   fb:"×不正解。引受人となった日から<mark>6か月</mark>を経過するまでは買主への貸付代金の貸付は禁止されます。",
+   fb_en:"Wrong. The prohibition on lending purchase funds to buyers lasts for 6 months from the underwriting date, not 2 months."
+  },
+  {n:15, sec:"金商法", type:"tf",
+   q:"<mark>自己</mark>が行う売付または買付またはデリバティブ取引の申し込みと同時期に、それと同価格で<mark>他人</mark>がその金融商品の買付または売付またはデリバティブ取引の申し込みを行うことを予めそのものと通謀してその売付または買付またはデリバティブ取引の申込を<mark>仮装取引</mark>という。",
+   tf:false,
+   fb:"×不正解。これは<mark>馴合取引</mark>の説明です。<mark>仮装取引</mark>は一人で自己売買の申込を仮装する行為です（相手方なし）。",
+   fb_en:"Wrong. This describes 'najimai torihiki' (wash trades between two parties). A 'kasou torihiki' (fictitious trade) is performed by one party alone to create a false appearance of trading activity."
+  },
+  {n:16, sec:"金商法", type:"tf",
+   q:"<mark>安定操作</mark>はいかなる場合も行ってはならない。",
+   tf:false,
+   fb:"×不正解。安定操作は<mark>一定の要件を満たす場合は可能</mark>です（法令に定める条件の下で許容されます）。",
+   fb_en:"Wrong. Stabilization operations (antei sousa) are permitted when certain legal conditions are met."
+  },
+  {n:17, sec:"金商法", type:"tf",
+   q:"内部者取引の規制の対象となる会社関係者の範囲には、その上場会社の<mark>子会社の役員</mark>は含まれない。",
+   tf:false,
+   fb:"×不正解。子会社の役員も会社関係者の範囲に<mark>含まれます</mark>。",
+   fb_en:"Wrong. Officers and directors of subsidiaries ARE included within the scope of company-related persons subject to insider trading regulations."
+  },
+  {n:18, sec:"金商法", type:"tf",
+   q:"内部者取引の要件における重要事実には、<mark>子会社に生じた重要事実</mark>は含まれない。",
+   tf:false,
+   fb:"×不正解。子会社に生じた重要事実も<mark>含まれます</mark>。",
+   fb_en:"Wrong. Material facts arising at a subsidiary ARE included as material facts for insider trading purposes."
+  },
+  {n:19, sec:"金商法", type:"tf",
+   q:"内部者取引の要件における重要事実は、公表後、<mark>中止を決定</mark>した場合、その中止の決定は重要事実には当たらない。",
+   tf:false,
+   fb:"×不正解。公表後に<mark>行わないとしたもの（中止決定）も重要事実の対象</mark>となります。",
+   fb_en:"Wrong. Even a decision to cancel/discontinue a previously announced action is considered a material fact subject to insider trading rules."
+  },
+  {n:20, sec:"金商法", type:"tf",
+   q:"会社関係者が上場会社の重要事実を公表される前に関して知った場合、その間に重要事実が<mark>公表された後</mark>でも、当該会社の発行する上場株券等の売買をしてはならない。",
+   tf:false,
+   fb:"×不正解。重要事実が<mark>公表された後</mark>は、誰もが知りうる情報になるため売買は可能です。",
+   fb_en:"Wrong. Once the material fact has been made public, trading is permitted because the information is now available to the public."
+  },
+  {n:21, sec:"金商法", type:"tf",
+   q:"内部者取引の重要事実は、<mark>2つ以上</mark>の報道機関に対して公開され、かつ公開されてから<mark>6時間</mark>経過すれば公表されたと認められる。",
+   tf:false,
+   fb:"×不正解。<mark>2つ以上</mark>の報道機関に公開かつ<mark>12時間</mark>経過すれば公表とみなされます。",
+   fb_en:"Wrong. A material fact is deemed 'disclosed' when released to 2 or more media outlets AND 12 hours have passed — not 6 hours."
+  },
+  {n:22, sec:"金商法", type:"tf",
+   q:"有価証券報告書において記載される財務諸表は、その発行会社の監査役の監査を受けていれば、<mark>公認会計士又は監査法人の監査証明を受ける必要はない</mark>。",
+   tf:false,
+   fb:"×不正解。有価証券報告書の財務諸表は<mark>公認会計士または監査法人の監査証明が必要</mark>です。監査役の監査だけでは不十分です。",
+   fb_en:"Wrong. Financial statements in annual securities reports must be audited by a certified public accountant or audit firm. A statutory auditor's review is not sufficient."
+  },
+  {n:23, sec:"金商法", type:"tf",
+   q:"株式等の大量保有の状況に関する開示制度において、一度提出すればその後変化があっても<mark>報告を行う必要は一切ない</mark>。",
+   tf:false,
+   fb:"×不正解。<mark>保有割合が1%以上増減</mark>した場合は<mark>5日以内</mark>に変更報告書を提出しなければなりません。",
+   fb_en:"Wrong. When the holding ratio changes by 1% or more, a change report must be submitted within 5 business days."
+  },
+  {n:24, sec:"金商法", type:"tf",
+   q:"大量報告書の提出義務を負うのは、対象有価証券の保有者でその保有割合が<mark>5%</mark>を超えるものである。",
+   tf:true,
+   fb:"○正解。保有割合が5%超の場合、大量保有報告書の提出義務があります。",
+   fb_en:"Correct. Holders with more than 5% of the target securities must file a large-shareholding report."
+  },
+  {n:25, sec:"金商法", type:"tf",
+   q:"株式等の大量保有の状況に関する開示制度において、提出された大量保有報告書及び変更報告書は原則<mark>10年間</mark>公衆の縦覧に供される。",
+   tf:false,
+   fb:"×不正解。原則<mark>5年間</mark>公衆の縦覧に供されます。",
+   fb_en:"Wrong. Large-shareholding reports are available for public inspection for 5 years, not 10."
+  },
+  {n:26, sec:"金商法", type:"tf",
+   q:"5%ルールに関して株券等の保有状況を計算するための株券等保有割合は、<mark>発行済株式総数等を保有株券等の総数で除して</mark>求められる。",
+   tf:false,
+   fb:"×不正解。株券等保有割合 ＝ <mark>発行株券等の総数 ÷ 発行済株式総数等</mark> で計算します（分子と分母が逆）。",
+   fb_en:"Wrong. The holding ratio = number of shares held ÷ total issued shares. The question has numerator and denominator reversed."
+  },
+  {n:27, sec:"金商法", type:"tf",
+   q:"消費者契約法で取消権を消費者が行使した場合、当初にさかのぼって契約は<mark>無効</mark>である。",
+   tf:true,
+   fb:"○正解。取消権行使により契約は遡及的に無効となります（追認できるときから<mark>1年</mark>、消費者契約の締結時から<mark>5年</mark>で時効消滅）。",
+   fb_en:"Correct. Exercising the right of rescission under the Consumer Contract Act voids the contract retroactively."
+  },
+  {n:28, sec:"金商法", type:"tf",
+   q:"犯罪収益移転防止法において、<mark>本人書類</mark>は業者が提示または送付を受ける日の前<mark>1年以内</mark>に作成されたもののみである。",
+   tf:false,
+   fb:"×不正解。本人確認書類は業者が提示を受ける日の前<mark>6か月以内</mark>に作成されたものでなければなりません。",
+   fb_en:"Wrong. Identity documents must have been prepared within 6 months before the date of presentation, not 1 year."
+  },
+  {n:29, sec:"金商法", type:"tf",
+   q:"<mark>取引確認記録</mark>は<mark>5年間</mark>保存しなければならない。",
+   tf:false,
+   fb:"×不正解。取引確認記録は<mark>7年間</mark>保存しなければなりません。",
+   fb_en:"Wrong. Transaction confirmation records must be kept for 7 years, not 5."
+  },
+
+  // ===== オプション取引 =====
+  {n:1, sec:"オプション", type:"tf",
+   q:"<mark>ストラドルの買い</mark>と<mark>ストラングルの買い</mark>と呼ばれるポジションは損益分岐点が<mark>二つある</mark>。",
+   tf:true,
+   fb:"○正解。ストラドル・ストラングルの買いはいずれも損益分岐点が2つあります（V字型のグラフ）。",
+   fb_en:"Correct. Both long straddle and long strangle positions have two break-even points."
+  },
+  {n:2, sec:"オプション", type:"tf",
+   q:"<mark>バーティカルブルスプレッド</mark>と呼ばれるポジションには、損益分岐点が<mark>二つある</mark>。",
+   tf:false,
+   fb:"×不正解。バーティカルブルスプレッドの損益分岐点は<mark>一つ</mark>です。",
+   fb_en:"Wrong. A vertical bull spread has only ONE break-even point."
+  },
+  {n:3, sec:"オプション", type:"tf",
+   q:"買方が権利行使したときに手に入る金額が<mark>プラス</mark>状態であることを<mark>アウト・オブ・ザマネー</mark>という。",
+   tf:false,
+   fb:"×不正解。これは<mark>イン・ザ・マネー（ITM）</mark>の説明です。\n・ITM：原証券価格 ＞ 権利行使価格（コール）\n・ATM：原証券価格 ＝ 権利行使価格\n・OTM：原証券価格 ＜ 権利行使価格（コール）",
+   fb_en:"Wrong. When exercising generates a positive amount, that is 'In the Money (ITM)', not Out of the Money."
+  },
+  {n:4, sec:"オプション", type:"tf",
+   q:"コールオプションでは<mark>原証券価格が下落</mark>するとプレミアムは上昇し、プットオプションでは<mark>原証券価格が下落</mark>するとプレミアムは下落する。",
+   tf:false,
+   fb:"×不正解。コール：原証券価格↓→プレミアム<mark>下落</mark>、プット：原証券価格↓→プレミアム<mark>上昇</mark>です。",
+   fb_en:"Wrong. Call premium falls when the underlying price falls. Put premium rises when the underlying price falls."
+  },
+  {n:5, sec:"オプション", type:"tf",
+   q:"コールオプションとプットオプションは<mark>原証券価格が上昇</mark>するとプレミアムは下落する。",
+   tf:false,
+   fb:"×不正解。原証券価格が上昇すると、<mark>コール＝上昇</mark>、<mark>プット＝下落</mark>です。両方が下落するわけではありません。",
+   fb_en:"Wrong. When the underlying price rises, call premium rises and put premium falls. They do not both fall."
+  },
+  {n:6, sec:"オプション", type:"tf",
+   q:"コールオプションとプットオプションとも、<mark>残存期間が短くなるほど</mark>プレミアムも低くなる。",
+   tf:true,
+   fb:"○正解。残存期間が短くなるほど時間的価値が減少するため、コール・プット両方ともプレミアムは低くなります。",
+   fb_en:"Correct. As time to expiry decreases, time value erodes, so both call and put premiums decrease."
+  },
+  {n:7, sec:"オプション", type:"tf",
+   q:"コールオプションとプットオプションとも、<mark>ボラティリティが上昇</mark>するとプレミアムは下落する。",
+   tf:false,
+   fb:"×不正解。ボラティリティが上昇すると、コール・プット<mark>両方とも上昇</mark>します。",
+   fb_en:"Wrong. When volatility rises, BOTH call and put premiums rise."
+  },
+  {n:8, sec:"オプション", type:"tf",
+   q:"コールオプションとプットオプションとも、<mark>短期金利が上昇</mark>するとプレミアムは下落する。",
+   tf:false,
+   fb:"×不正解。短期金利上昇時は<mark>コールは上昇</mark>、<mark>プットは下落</mark>します。",
+   fb_en:"Wrong. When short-term interest rates rise, call premiums rise and put premiums fall."
+  },
+  {n:9, sec:"オプション", type:"tf",
+   q:"<mark>日経225オプション</mark>は、6月と12月限の直近16限月と3月と9月限の直近3限月とそのほかの直近6限月の合計<mark>25限月</mark>である。",
+   tf:true,
+   fb:"○正解。日経225オプション = 6月・12月限 直近16限月 ＋ 3月・9月限 直近3限月 ＋ その他直近6限月 ＝ 合計25限月。",
+   fb_en:"Correct. Nikkei 225 options have 25 contract months in total."
+  },
+  {n:10, sec:"オプション", type:"tf",
+   q:"<mark>TOPIXオプション</mark>の限月は、6月と12月限の直近10限月と3月9月の直近3限月に加え、そのほかの直近6限月である。",
+   tf:true,
+   fb:"○正解。TOPIXオプション = 6月・12月限 直近10限月 ＋ 3月・9月限 直近3限月 ＋ その他直近6限月 ＝ 合計19限月。",
+   fb_en:"Correct. TOPIX options have a total of 19 contract months."
+  },
+  {n:11, sec:"オプション", type:"tf",
+   q:"指数オプション取引の<mark>取引最終日</mark>は各限月の<mark>第二金曜日の前営業日</mark>の終了する取引日である。",
+   tf:true,
+   fb:"○正解。指数オプション（日経225・TOPIX）の取引最終日は各限月の第二金曜日の前営業日（＝大体木曜日）です。",
+   fb_en:"Correct. The last trading day for index options is the business day before the 2nd Friday of each contract month (usually Thursday)."
+  },
+  {n:12, sec:"オプション", type:"tf",
+   q:"<mark>日経225オプション</mark>の取引単位は、オプション価格の<mark>1万倍</mark>である。",
+   tf:false,
+   fb:"×不正解。日経225オプションの取引単位はオプション価格の<mark>1,000倍</mark>です。",
+   fb_en:"Wrong. The contract multiplier for Nikkei 225 options is 1,000 times the option price, not 10,000."
+  },
+  {n:13, sec:"オプション", type:"tf",
+   q:"<mark>国債先物オプション</mark>取引において、取引単位は先物額面<mark>1億円分</mark>のオプションが売買単位となる。",
+   tf:true,
+   fb:"○正解。国債先物オプションの取引単位は先物額面1億円分です。",
+   fb_en:"Correct. The trading unit for JGB futures options is options on a face value of ¥100 million in futures."
+  },
+  {n:14, sec:"オプション", type:"tf",
+   q:"<mark>長期国債先物オプション</mark>取引の呼び値の単位は、額面100円につき<mark>10銭</mark>である。",
+   tf:false,
+   fb:"×不正解。長期国債先物オプションの呼び値の単位は額面100円につき<mark>1銭</mark>です。",
+   fb_en:"Wrong. The tick size for long-term JGB futures options is 1 sen (0.01 yen) per ¥100 face value."
+  },
+  {n:15, sec:"オプション", type:"tf",
+   q:"<mark>国債先物オプション取引</mark>において、権利行使は取引最終日の翌営業日のみ可能な<mark>ヨーロピアンタイプ</mark>である。",
+   tf:false,
+   fb:"×不正解。国債先物オプションは権利行使が<mark>いつでも可能なアメリカンタイプ</mark>です。",
+   fb_en:"Wrong. JGB futures options are American-style, meaning exercise is possible at any time before expiry."
+  },
+
+  // ===== 信用取引 =====
+  {n:1, sec:"信用取引", type:"tf",
+   q:"一般信用取引の<mark>弁済期限</mark>は<mark>6か月</mark>である。",
+   tf:false,
+   fb:"×不正解。<mark>制度信用取引</mark>の弁済期限が<mark>6か月</mark>です。<mark>一般信用取引</mark>の弁済期限は<mark>自由</mark>（当事者間で決定）です。",
+   fb_en:"Wrong. The 6-month repayment deadline applies to 'seido' (standardized) margin trading. 'Ippan' (general) margin trading has a flexible repayment period agreed between the parties."
+  },
+  {n:2, sec:"信用取引", type:"tf",
+   q:"顧客が信用取引の買建株を弁済するには<mark>受渡決済</mark>と反対売買による<mark>差金決済</mark>がある。",
+   tf:true,
+   fb:"○正解。信用取引の決済方法は①受渡決済（現物を受け取って代金を支払う）と②反対売買による差金決済の2種類です。",
+   fb_en:"Correct. Settlement of a long margin position can be done by physical delivery or by an offsetting sale (cash settlement of the price difference)."
+  },
+  {n:3, sec:"信用取引", type:"tf",
+   q:"<mark>金利</mark>は株券を買顧客から徴収され売顧客に支払う。",
+   tf:true,
+   fb:"○正解。金利は<mark>買顧客</mark>（代金を借りる）から徴収し、<mark>売顧客</mark>（代金を預ける）に支払います。",
+   fb_en:"Correct. Interest is charged to the buyer (who borrows purchase funds) and paid to the seller (who deposits sale proceeds)."
+  },
+  {n:4, sec:"信用取引", type:"tf",
+   q:"金利は株券を借りた顧客から徴収され、信用取引貸株料は、買付代金を借りた顧客から徴収される。",
+   tf:false,
+   fb:"×不正解。<mark>金利</mark>は代金を借りた顧客（<mark>買</mark>）から徴収、<mark>信用取引貸株料</mark>は株券を借りた顧客（<mark>売</mark>）から徴収します。",
+   fb_en:"Wrong. Interest is charged to buyers (who borrow funds); securities lending fees are charged to sellers (who borrow securities)."
+  },
+  {n:5, sec:"信用取引", type:"tf",
+   q:"信用取引貸株料は品貸料と同様に、売方が株券の借入に伴う費用として業者を通じて買方に支払う。",
+   tf:false,
+   fb:"×不正解。<mark>信用取引貸株料</mark>は売方が業者に支払います（売⇒業者）。<mark>品貸料（逆日歩）</mark>は売方から買方に支払われます（売⇒買）。",
+   fb_en:"Wrong. Securities lending fees flow from the seller to the broker. Reverse lending fees (gyakuhibu) flow from the seller to the buyer."
+  },
+  {n:6, sec:"信用取引", type:"tf",
+   q:"証券会社が貸株超過銘柄の不足する株数をほかから調達したときの品貸料を<mark>日歩</mark>といい、業者は<mark>売</mark>顧客から徴収し、<mark>買</mark>顧客に支払う。",
+   tf:false,
+   fb:"×不正解。これを<mark>逆日歩（ぎゃくひぶ）</mark>といいます（日歩ではない）。また流れは<mark>売→買</mark>で正解です。",
+   fb_en:"Wrong. This is called 'gyakuhibu' (reverse lending fee), not 'hibu'. The fee does flow from the seller to the buyer — that part is correct."
+  },
+  {n:7, sec:"信用取引", type:"tf",
+   q:"業者は信用取引における売買の成立時、約定日から起算して<mark>3営業日目</mark>の正午までの業者指定日時までに<mark>30%以上</mark>の委託保証金を顧客から徴収しなくてはならない。",
+   tf:true,
+   fb:"○正解。委託保証金は約定日から3営業日目の正午までに徴収。最低30%以上（最低額30万円）です。",
+   fb_en:"Correct. The initial margin must be collected by noon of the 3rd business day from the contract date, at a minimum rate of 30% (minimum ¥300,000)."
+  },
+  {n:8, sec:"信用取引", type:"tf",
+   q:"保険金代用有価証券の現金換算率（代用掛目）は<mark>一律90%</mark>である。",
+   tf:false,
+   fb:"×不正解。代用有価証券の現金換算率は<mark>有価証券の種類によって異なります</mark>（一律ではない）。",
+   fb_en:"Wrong. The collateral substitution ratio varies depending on the type of securities — it is not a uniform 90%."
+  },
+  {n:9, sec:"信用取引", type:"tf",
+   q:"<mark>追証</mark>が必要となるのは、<mark>約定金額の30%</mark>を下回った場合である。",
+   tf:false,
+   fb:"×不正解。追証（追加保証金）が必要となるのは保証金維持率が<mark>20%</mark>を下回った場合です（追＝つい＝20）。",
+   fb_en:"Wrong. A margin call (additional margin deposit) is triggered when the maintenance margin ratio falls below 20%, not 30%."
+  },
+
+  // ===== 先物取引 =====
+  {n:1, sec:"先物取引", type:"tf",
+   q:"先物取引について、現物価格の価格変動<mark>リスクを回避</mark>しようとする取引のことを<mark>裁定取引</mark>という。",
+   tf:false,
+   fb:"×不正解。リスクを回避しようとするのは<mark>ヘッジ取引</mark>です。<mark>裁定取引</mark>は先物と現物の価格差から利益を得ようとする取引です。",
+   fb_en:"Wrong. Hedging (risuku kaihi) is the strategy of avoiding price risk. Arbitrage (saitei torihiki) aims to profit from price differences between futures and spot."
+  },
+  {n:2, sec:"先物取引", type:"tf",
+   q:"先物取引について、<mark>ヘッジ取引</mark>とは先物と現物の価格差から利益を上げようとする取引である。",
+   tf:false,
+   fb:"×不正解。これは<mark>裁定取引（アービトラージ）</mark>の説明です。ヘッジ取引はリスク回避を目的とします。",
+   fb_en:"Wrong. This describes arbitrage. Hedging is about risk avoidance, not profiting from price differences."
+  },
+  {n:3, sec:"先物取引", type:"tf",
+   q:"先物取引について、<mark>スペキュレーション</mark>とは、先物の<mark>価格変動をとらえて利益を獲得</mark>することを目的とした取引である。",
+   tf:true,
+   fb:"○正解。スペキュレーション（投機）は先物の価格変動から利益を得ることを目的とします。",
+   fb_en:"Correct. Speculation aims to profit from price movements in futures."
+  },
+  {n:4, sec:"先物取引", type:"tf",
+   q:"ヘッジ取引に対してはリスク回避の手段、スペキュレーターに対しては<mark>裁定利益の獲得の機会</mark>、アービトラジャーに対しては<mark>投機利益の獲得</mark>を提供する。",
+   tf:false,
+   fb:"×不正解。<mark>ヘッジ＝リスク回避</mark>、<mark>スペキュレーション＝投機利益</mark>、<mark>アービトラジャー＝裁定利益</mark>です（スペキュとアービトラが逆）。",
+   fb_en:"Wrong. Hedge=risk avoidance, Speculator=speculative profit, Arbitrageur=arbitrage profit. The question has the last two swapped."
+  },
+  {n:5, sec:"先物取引", type:"tf",
+   q:"TOPIX現物指数が<mark>1050</mark>ポイントで短期金利が年率<mark>1.2%</mark>の場合、<mark>3か月後</mark>の先物理論価格は<mark>1053円</mark>である。※少数以下切り捨て",
+   tf:true,
+   fb:"○正解。先物理論価格 ＝ 現物価格 ＋ キャリーコスト\nキャリーコスト ＝ 1050 × 1.2% × 3/12 ≒ 3\n∴ 1050 ＋ 3 ＝ <mark>1053</mark>",
+   fb_en:"Correct. Theoretical futures price = Spot price + Carrying cost\nCarrying cost = 1050 × 1.2% × 3/12 ≈ 3\n∴ 1050 + 3 = 1053"
+  },
+  {n:6, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物</mark>は<mark>東京証券取引所</mark>にて取引されている。",
+   tf:false,
+   fb:"×不正解。日経225先物は<mark>大阪取引所（OSE）</mark>にて取引されています。",
+   fb_en:"Wrong. Nikkei 225 futures are traded on the Osaka Exchange (OSE), not the Tokyo Stock Exchange."
+  },
+  {n:7, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物の限月</mark>は、6月12月の直近16限月と、3月9月の直近の3限月を取引対象とする<mark>19限月</mark>取引である。",
+   tf:true,
+   fb:"○正解。日経225先物は6月・12月直近16限月＋3月・9月直近3限月＝合計19限月です。",
+   fb_en:"Correct. Nikkei 225 futures have 19 contract months: 16 for June/December and 3 for March/September."
+  },
+  {n:8, sec:"先物取引", type:"tf",
+   q:"指数先物取引の<mark>取引最終日</mark>は、各限月の第二金曜日の<mark>前営業日</mark>に終了する取引日である。",
+   tf:true,
+   fb:"○正解。指数先物取引の取引最終日は各限月の第二金曜日の前営業日（大体木曜日）です。",
+   fb_en:"Correct. The last trading day for index futures is the business day before the 2nd Friday of each contract month (usually Thursday)."
+  },
+  {n:9, sec:"先物取引", type:"tf",
+   q:"日経225先物の<mark>最終決済</mark>による差金の授受は、取引最終日から起算して<mark>3営業日目</mark>に行うとされている。",
+   tf:true,
+   fb:"○正解。最終決済（SQ決済）による差金の授受は取引最終日から起算して3営業日目に行われます。",
+   fb_en:"Correct. Final settlement (SQ settlement) for Nikkei 225 futures occurs on the 3rd business day from the last trading day."
+  },
+  {n:10, sec:"先物取引", type:"tf",
+   q:"指数先物取引において、取引最終日までに反対売買が行われなかった建玉については、特別清算数値（<mark>SQ</mark>）による決済が行われる。",
+   tf:true,
+   fb:"○正解。取引最終日までに反対売買がされなかった建玉はSQ（特別清算指数）による決済が行われます。",
+   fb_en:"Correct. Open positions not closed by the last trading day are settled at the SQ (Special Quotation) price."
+  },
+  {n:11, sec:"先物取引", type:"tf",
+   q:"<mark>TOPIX先物の新限月の取引開始日</mark>は、直近限月の取引最終日の<mark>前営業日</mark>である。",
+   tf:false,
+   fb:"×不正解。新限月の取引開始日は直近限月の取引最終日の<mark>翌営業日</mark>です。",
+   fb_en:"Wrong. The first trading day of a new contract month is the business day AFTER the last trading day of the nearest contract month."
+  },
+  {n:12, sec:"先物取引", type:"tf",
+   q:"<mark>ミニTIPIX先物</mark>の取引単位は、東証株価指数の<mark>1,000倍</mark>である。",
+   tf:true,
+   fb:"○正解。ミニTOPIX先物の取引単位は東証株価指数の1,000倍です。なおTOPIX先物は10,000倍です。",
+   fb_en:"Correct. Mini TOPIX futures contract size = TOPIX × 1,000. (Regular TOPIX futures = TOPIX × 10,000)"
+  },
+  {n:13, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物</mark>の取引単位は、日経平均株価の数値に<mark>10,000倍</mark>ある。",
+   tf:false,
+   fb:"×不正解。<mark>日経225先物</mark>は1,000倍、<mark>日経225mini</mark>は100倍です。",
+   fb_en:"Wrong. Nikkei 225 futures contract size = Nikkei 225 × 1,000. Mini Nikkei 225 = Nikkei 225 × 100."
+  },
+  {n:14, sec:"先物取引", type:"tf",
+   q:"<mark>TOPIX先物</mark>の呼び値の単位は<mark>0.5ポイント</mark>である。",
+   tf:true,
+   fb:"○正解。TOPIX先物の呼び値の単位は0.5ポイント、ミニTOPIX先物は0.25ポイントです。",
+   fb_en:"Correct. TOPIX futures tick size = 0.5 points. Mini TOPIX futures tick size = 0.25 points."
+  },
+  {n:15, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物</mark>の呼び値の単位は<mark>1円</mark>である。",
+   tf:false,
+   fb:"×不正解。日経225先物の呼び値の単位は<mark>10円</mark>、日経225ミニは<mark>5円</mark>です。",
+   fb_en:"Wrong. Nikkei 225 futures tick size = ¥10. Mini Nikkei 225 tick size = ¥5."
+  },
+  {n:16, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物</mark>にはサーキット・ブレーカー制度が採用されているが、<mark>TOPIX先物</mark>は採用されていない。",
+   tf:false,
+   fb:"×不正解。日経225先物・TOPIX先物<mark>両方</mark>にサーキット・ブレーカー制度が採用されています。",
+   fb_en:"Wrong. Circuit breakers are adopted for BOTH Nikkei 225 futures and TOPIX futures."
+  },
+  {n:17, sec:"先物取引", type:"tf",
+   q:"<mark>日経225先物</mark>には値幅制限が決められている。",
+   tf:true,
+   fb:"○正解。日経225先物には値幅制限（サーキット・ブレーカー含む）があります。",
+   fb_en:"Correct. Nikkei 225 futures have price limit rules (including circuit breakers)."
+  },
+  {n:18, sec:"先物取引", type:"tf",
+   q:"<mark>国債先物</mark>取引は、国内のすべての金融商品取引所においてその取引が行われている。",
+   tf:false,
+   fb:"×不正解。国債先物取引は<mark>大阪取引所のみ</mark>で取引されています。",
+   fb_en:"Wrong. JGB futures are traded only on the Osaka Exchange."
+  },
+  {n:19, sec:"先物取引", type:"tf",
+   q:"<mark>長期国債先物取引</mark>の対象商品は、利率年<mark>3%</mark>で償還期限<mark>5年</mark>の長期国債標準物である。",
+   tf:false,
+   fb:"×不正解。<mark>長期国債先物</mark>の標準物は利率年<mark>6%</mark>・償還期限<mark>10年</mark>です。利率3%・5年は<mark>中期国債先物</mark>の標準物です。",
+   fb_en:"Wrong. The long-term JGB futures benchmark is 6% coupon, 10-year maturity. The 3% coupon, 5-year maturity is for medium-term JGB futures."
+  },
+  {n:20, sec:"先物取引", type:"tf",
+   q:"<mark>長期国債先物取引</mark>の限月は、3月6月9月及び12月であり、<mark>常時6限月</mark>が採用されている。",
+   tf:false,
+   fb:"×不正解。長期国債先物の限月は3月・6月・9月・12月ですが、常時<mark>3限月</mark>が取引対象です（先物＝3＝さ）。",
+   fb_en:"Wrong. JGB futures have 4 quarterly expiry months but only 3 are listed at any one time."
+  },
+  {n:21, sec:"先物取引", type:"tf",
+   q:"<mark>標準物</mark>というのは、利率と償還期限を常に一定とする架空の債券であり、日本の国債先物取引はすべてこの標準物を対象としている。",
+   tf:true,
+   fb:"○正解。標準物（ひょうじゅんぶつ）は利率・償還期限が固定された仮想の国債で、国債先物取引の対象となります。",
+   fb_en:"Correct. The 'benchmark bond' (hyoujunbutsu) is a notional bond with fixed coupon and maturity, used as the underlying for all JGB futures."
+  },
+  {n:22, sec:"先物取引", type:"tf",
+   q:"<mark>長期国債先物取引</mark>の新限月の取引開始日は、各限月の<mark>15日</mark>である。",
+   tf:false,
+   fb:"×不正解。長期国債先物の新限月の取引開始日は直近限月の<mark>取引最終日の翌営業日</mark>です。",
+   fb_en:"Wrong. The first trading day for a new JGB futures contract month is the business day after the last trading day of the nearest contract month."
+  },
+  {n:23, sec:"先物取引", type:"tf",
+   q:"<mark>長期国債先物取引</mark>の<mark>取引最終日</mark>は、受渡決済期日の<mark>9営業日前</mark>の日とされている。",
+   tf:false,
+   fb:"×不正解。長期国債先物の取引最終日は受渡決済期日の<mark>5営業日前</mark>です。",
+   fb_en:"Wrong. The last trading day for long-term JGB futures is 5 business days before the delivery settlement date."
+  },
+  {n:24, sec:"先物取引", type:"tf",
+   q:"<mark>長期国債先物取引</mark>の呼び値の単位は、額面100円につき<mark>1銭</mark>とされている。",
+   tf:true,
+   fb:"○正解。長期国債先物取引の呼び値の単位は額面100円につき1銭です。",
+   fb_en:"Correct. The tick size for long-term JGB futures is 1 sen (¥0.01) per ¥100 face value."
+  },
+  {n:25, sec:"先物取引", type:"tf",
+   q:"<mark>中期国債先物取引</mark>の取引単位は、額面<mark>1000万円</mark>である。",
+   tf:false,
+   fb:"×不正解。中期国債先物取引の取引単位は額面<mark>1億円</mark>です。",
+   fb_en:"Wrong. The contract size for medium-term JGB futures is face value of ¥100 million."
+  },
+
+  // ===== 株式会社法 =====
+  {n:1, sec:"会社法", type:"tf",
+   q:"会社の形態として会社法は<mark>株式会社、合名会社、合資会社、合同会社</mark>の4種類を規定している。",
+   tf:true,
+   fb:"○正解。会社法は株式会社・合名会社・合資会社・合同会社の4種類を規定しています。",
+   fb_en:"Correct. The Companies Act defines four types of companies: stock company (kabushiki-gaisha), general partnership company (gomei-gaisha), limited partnership company (goshi-gaisha), and limited liability company (godo-gaisha)."
+  },
+  {n:2, sec:"会社法", type:"tf",
+   q:"<mark>株式会社</mark>では、社員は会社の債務については何の<mark>責任も負わない</mark>が、<mark>合名会社</mark>において、社員は会社に対して出資義務を負うだけなく、会社の債務につき、債権者に対して<mark>直接・連帯・無限の責任を負う</mark>。",
+   tf:true,
+   fb:"○正解。株式会社の株主は有限責任（出資額が限度）ですが、合名会社の社員は債権者に対して直接・連帯・無限責任を負います。",
+   fb_en:"Correct. Shareholders of a stock company bear no liability for company debts (limited liability), while members of a general partnership company bear direct, joint, and unlimited liability to creditors."
+  },
+  {n:3, sec:"会社法", type:"tf",
+   q:"株式会社設立に際し、事前に株主間の相互の同意を得れば、<mark>定款の作成を省略</mark>することができる。",
+   tf:false,
+   fb:"×不正解。定款は<mark>必ず作成</mark>しなければなりません。株主間の同意があっても省略はできません。",
+   fb_en:"Wrong. Articles of incorporation must always be created. They cannot be omitted even with shareholder consent."
+  },
+  {n:4, sec:"会社法", type:"tf",
+   q:"株式会社を設立するには、<mark>資本金</mark>として1000万円以上必要である。",
+   tf:false,
+   fb:"×不正解。<mark>最低資本金制度は廃止</mark>されており、<mark>1円でも</mark>株式会社の設立が可能です。",
+   fb_en:"Wrong. The minimum capital requirement system has been abolished; a stock company can be established with as little as ¥1 of capital."
+  },
+  {n:5, sec:"会社法", type:"tf",
+   q:"株式会社の<mark>発起人</mark>は、3人以上必要である。",
+   tf:false,
+   fb:"×不正解。発起人は<mark>1人でもよい</mark>です。3人以上の制限はありません。",
+   fb_en:"Wrong. A stock company can be incorporated with just one founder (hokkinin); there is no minimum of three."
+  },
+  {n:6, sec:"会社法", type:"tf",
+   q:"会社法で定める<mark>大会社</mark>は資本金の額5億円以上でかつ負債総額が200億円以上の株式会社である。",
+   tf:false,
+   fb:"×不正解。大会社の要件は資本金<mark>5億円以上</mark>「<mark>又は</mark>」負債総額<mark>200億円以上</mark>です（かつ、ではなくどちらか一方）。",
+   fb_en:"Wrong. A 'large company' (dai-gaisha) is defined as a stock company with capital of ¥500 million or more, OR total liabilities of ¥20 billion or more — not both conditions required simultaneously."
+  },
+  {n:7, sec:"会社法", type:"tf",
+   q:"<mark>共益権</mark>とは、その権利の行使が株主全体の利害に影響を及ぼすものをいい、具体的には<mark>余剰金や残余財産</mark>の分配を受ける権利があげられる。",
+   tf:false,
+   fb:"×不正解。これは<mark>自益権</mark>（お金関係の権利）の説明です。<mark>共益権</mark>とは議決権など、株主全体の利害に関わる権利です。",
+   fb_en:"Wrong. Receiving dividends or residual assets is a 'self-interest right' (jieki-ken), which is a money-related right. 'Co-interest rights' (kyoeki-ken), such as voting rights, are rights whose exercise affects all shareholders collectively."
+  },
+  {n:8, sec:"会社法", type:"tf",
+   q:"<mark>少数株主権</mark>とは、<mark>1株</mark>しか持たない株主でも行使できる権利のことをいう。",
+   tf:false,
+   fb:"×不正解。これは<mark>単独株主権</mark>の説明です。<mark>少数株主権</mark>とは<mark>一定割合以上</mark>の株式を持つ人が行使できる権利です。",
+   fb_en:"Wrong. This describes 'sole shareholder rights' (tandoku kabunushi-ken), exercisable even with one share. 'Minority shareholder rights' (shosu kabunushi-ken) require holding a certain minimum proportion of shares."
+  },
+  {n:9, sec:"会社法", type:"tf",
+   q:"株主総会には<mark>定時総会</mark>と<mark>臨時総会</mark>があり、定時総会とは、毎決算期に1回その年後の会社の成果を確認するために開催されるものをいう。",
+   tf:true,
+   fb:"○正解。株主総会には定時総会（毎決算期に1回開催）と臨時総会（必要に応じて開催）があります。",
+   fb_en:"Correct. There are two types of shareholders' meetings: the ordinary general meeting (held once per fiscal year) and the extraordinary general meeting (held as needed)."
+  },
+  {n:10, sec:"会社法", type:"tf",
+   q:"株主総会の<mark>普通決議</mark>に<mark>取締役の選任</mark>は含まれる。",
+   tf:true,
+   fb:"○正解。普通決議の対象には取締役の選任・解任、会計監査人の選任、取締役の報酬などが含まれます。",
+   fb_en:"Correct. Ordinary resolutions include the appointment/dismissal of directors, appointment of accounting auditors, and director compensation."
+  },
+  {n:11, sec:"会社法", type:"tf",
+   q:"株主総会の<mark>普通決議</mark>に<mark>定款の変更</mark>は含まれる。",
+   tf:false,
+   fb:"×不正解。定款の変更は<mark>特別決議</mark>の決議事項です。普通決議には含まれません。",
+   fb_en:"Wrong. Amendment of the articles of incorporation requires a special resolution, not an ordinary resolution."
+  },
+  {n:12, sec:"会社法", type:"tf",
+   q:"株主総会の<mark>特別決議</mark>に<mark>株式会社の解散</mark>は含まれる。",
+   tf:true,
+   fb:"○正解。会社の解散は特別決議の決議事項に含まれます。",
+   fb_en:"Correct. Dissolution of the company is included among matters requiring a special resolution."
+  },
+  {n:13, sec:"会社法", type:"tf",
+   q:"取締役会を置く会社の取締役は3名以上必要であるが、取締役会を置かない会社では取締役は<mark>必要ない</mark>。",
+   tf:false,
+   fb:"×不正解。取締役会を置かない会社でも取締役は<mark>必要</mark>です（最低1名）。",
+   fb_en:"Wrong. Even a company without a board of directors must have at least one director."
+  },
+  {n:14, sec:"会社法", type:"tf",
+   q:"株主総会では、<mark>代理人</mark>が出席し、<mark>議決権を行使</mark>する方法は認められている。",
+   tf:true,
+   fb:"○正解。株主総会では代理人による議決権の代理行使が認められています。",
+   fb_en:"Correct. At shareholders' meetings, voting by proxy (a representative attending and exercising voting rights) is permitted."
+  },
+  {n:15, sec:"会社法", type:"tf",
+   q:"株主総会の<mark>特別決議</mark>にて議決権総数の2/3以上にあたる株式を持つ株主が<mark>出席</mark>し、出席株主の議決権の<mark>過半数</mark>の賛成を得ることが求められる。",
+   tf:false,
+   fb:"×不正解。<mark>逆</mark>です。特別決議は<mark>出席が過半数</mark>、<mark>賛成が2/3以上</mark>が必要です（普通決議は出席・賛成とも過半数）。",
+   fb_en:"Wrong. It's reversed. A special resolution requires attendance of a majority of voting rights and approval by two-thirds or more of those present. (An ordinary resolution requires a majority for both attendance and approval.)"
+  },
+  {n:16, sec:"会社法", type:"tf",
+   q:"A社がB社の議決権総数の<mark>1/4以上</mark>を持つとき、B社がA社株を保有していても<mark>議決権がない</mark>。",
+   tf:true,
+   fb:"○正解。A社がB社議決権の1/4以上を持つ場合、B社が保有するA社株式は議決権を持ちません（相互保有株式の議決権制限）。",
+   fb_en:"Correct. If Company A holds 1/4 or more of Company B's voting rights, any shares of Company A held by Company B lose their voting rights (mutual shareholding restriction)."
+  },
+  {n:17, sec:"会社法", type:"tf",
+   q:"<mark>指名委員会等設置会社</mark>には、監査役を置かなくてはならない。",
+   tf:false,
+   fb:"×不正解。指名委員会等設置会社には<mark>監査委員会</mark>があるため、<mark>監査役は不要</mark>です。",
+   fb_en:"Wrong. A company with a nominating committee, etc. (shimei iinkai-tou secchi kaisha) has an audit committee, so a statutory auditor (kansayaku) is not required."
+  },
+  {n:18, sec:"会社法", type:"tf",
+   q:"2つ以上の会社が<mark>合併</mark>により1つの会社になる方法には、<mark>新設合併</mark>と<mark>吸収合併</mark>がある。",
+   tf:true,
+   fb:"○正解。合併には新設合併（新会社を設立）と吸収合併（既存会社が他社を吸収）の2種類があります。",
+   fb_en:"Correct. There are two types of mergers: a consolidation-type merger (creating a new company) and an absorption-type merger (an existing company absorbs another)."
+  },
+  {n:19, sec:"会社法", type:"tf",
+   q:"会社の分割のうち、会社の事業の1部門を切り離して別会社として<mark>独立する</mark>方法を<mark>吸収分割</mark>という。",
+   tf:false,
+   fb:"×不正解。これは<mark>新設分割</mark>の説明です。<mark>吸収分割</mark>とは切り離した部門を<mark>別の既存の会社につける</mark>方法です。",
+   fb_en:"Wrong. This describes an incorporation-type company split (shinsetsu bunkatsu), where a spun-off division becomes an independent new company. An absorption-type split (kyushu bunkatsu) attaches the spun-off division to an existing company instead."
+  },
+  {n:20, sec:"会社法", type:"tf",
+   q:"事業譲渡により、事業全部を譲渡した場合、会社は<mark>当然に解散</mark>する。",
+   tf:false,
+   fb:"×不正解。事業全部を譲渡しても会社は<mark>当然に解散ではありません</mark>。解散には別途、解散決議等の手続きが必要です。",
+   fb_en:"Wrong. Even if a company transfers its entire business, it does not automatically dissolve. Separate dissolution procedures (such as a dissolution resolution) are required."
+  },
+  // =============================================
+  // 財務諸表と企業分析（15問）
+  // =============================================
+  {n:1, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>貸借対照表</mark>は一定期間における企業の経営成績を明らかにする報告書であり、<mark>損益計算書</mark>は一定時点における企業の財政状態の一覧表である。",
+   tf:false,
+   fb:"×不正解。説明が逆です。<mark>貸借対照表</mark>は<mark>一定時点の財政状態</mark>を示し、<mark>損益計算書</mark>は<mark>一定期間の経営成績</mark>を示します。",
+   fb_en:"Wrong. The descriptions are reversed. The balance sheet shows the financial position at a specific point in time, while the income statement shows business performance over a specific period."
+  },
+  {n:2, sec:"財務諸表と企業分析", type:"tf",
+   q:"損益計算書において、<mark>営業利益</mark>は経常利益に営業外収益を加算し、営業外費用を減算して求められる。",
+   tf:false,
+   fb:"×不正解。<mark>営業利益</mark>は<mark>売上総利益から販売費および一般管理費</mark>を減算して求められます。経常利益に営業外収益を加えるのは誤りです。",
+   fb_en:"Wrong. Operating profit is calculated by subtracting selling, general and administrative expenses from gross profit. It is not derived from ordinary profit."
+  },
+  {n:3, sec:"財務諸表と企業分析", type:"tf",
+   q:"損益計算書において、<mark>経常利益</mark>とは、営業利益に営業外費用を加えた利益をいう。",
+   tf:false,
+   fb:"×不正解。<mark>経常利益</mark>は、<mark>営業利益に営業外収益を加え、営業外費用を引いて</mark>求めます。営業外費用を加えるのは誤りです。",
+   fb_en:"Wrong. Ordinary profit is calculated by adding non-operating income to operating profit and subtracting non-operating expenses. Adding non-operating expenses is incorrect."
+  },
+  {n:4, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>配当性向</mark>は、配当金÷経常利益×100で求められる。",
+   tf:false,
+   fb:"×不正解。<mark>配当性向＝配当金÷当期純利益×100</mark>です。分母は経常利益ではなく<mark>当期純利益</mark>です。",
+   fb_en:"Wrong. Dividend payout ratio = Dividends ÷ Net income × 100. The denominator is net income, not ordinary profit."
+  },
+  {n:5, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>配当率</mark>は資本金÷配当金×100で求められる。",
+   tf:false,
+   fb:"×不正解。<mark>配当率＝配当金÷資本金×100</mark>です。分子と分母が逆になっています。",
+   fb_en:"Wrong. Dividend rate = Dividends ÷ Capital stock × 100. The numerator and denominator are reversed in the question."
+  },
+  {n:6, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>配当性向</mark>は当期純利益に対する配当金の割合を示すものであって、配当性向が低いということは、<mark>内部留保率が低い</mark>ことを意味する。",
+   tf:false,
+   fb:"×不正解。<mark>配当性向が低い＝内部留保が高い</mark>です。配当に回す割合が少ないほど、企業内部に留保される利益が多くなります。",
+   fb_en:"Wrong. A low dividend payout ratio means a high retention ratio. The less profit paid out as dividends, the more is retained within the company."
+  },
+  {n:7, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>流動比率</mark>は流動負債÷流動資産×100で求められる。",
+   tf:false,
+   fb:"×不正解。<mark>流動比率＝流動資産÷流動負債×100</mark>です。分子と分母が逆になっています。",
+   fb_en:"Wrong. Current ratio = Current assets ÷ Current liabilities × 100. The numerator and denominator are reversed."
+  },
+  {n:8, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>流動比率</mark>は100%以上が望ましい。",
+   tf:false,
+   fb:"×不正解。<mark>流動比率は200%以上</mark>が望ましいとされています。100%では短期の支払能力として不十分です。",
+   fb_en:"Wrong. A current ratio of 200% or more is considered desirable. 100% is insufficient for short-term solvency."
+  },
+  {n:9, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>当座比率</mark>は100%以下が望ましい。",
+   tf:false,
+   fb:"×不正解。<mark>当座比率は100%以上</mark>が望ましいとされています。当座資産が流動負債を上回っていることが健全とされます。",
+   fb_en:"Wrong. A quick ratio of 100% or more is considered desirable. Having quick assets exceed current liabilities indicates financial health."
+  },
+  {n:10, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>固定比率</mark>は<mark>100%以下</mark>が望ましい。",
+   tf:true,
+   fb:"○正解。<mark>固定比率＝固定資産÷自己資本×100</mark>。固定資産を自己資本の範囲内で賄えているほど安全であり、<mark>100%以下が望ましい</mark>とされます。",
+   fb_en:"Correct. Fixed asset ratio = Fixed assets ÷ Equity × 100. A ratio of 100% or less is desirable, meaning fixed assets are fully funded by equity."
+  },
+  {n:11, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>負債比率</mark>は<mark>低い</mark>ほどよく、<mark>100%以下</mark>が望ましい。",
+   tf:true,
+   fb:"○正解。<mark>負債比率</mark>は他人資本への依存度を示し、<mark>低いほど財務的に安全</mark>です。100%以下が望ましいとされています。",
+   fb_en:"Correct. The debt ratio indicates dependence on borrowed capital. A lower ratio means greater financial safety, and 100% or less is desirable."
+  },
+  {n:12, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>自己資本比率</mark>とは、総資本に占める自己資本の割合を示すものであり、一般にその比率が<mark>低ければ低いほどよい</mark>ものと考えられている。",
+   tf:false,
+   fb:"×不正解。<mark>自己資本比率は高ければ高いほどよい</mark>とされています。自己資本比率が高いほど、外部からの借入に頼らず安定した経営ができます。",
+   fb_en:"Wrong. A higher equity ratio is considered better. A higher ratio means less reliance on external borrowing and more stable management."
+  },
+  {n:13, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>自己資本比率</mark>の高い企業とは、一般に不況に対する抵抗力が強く、長期的観点から健全な発展が見込める。",
+   tf:true,
+   fb:"○正解。<mark>自己資本比率が高い企業</mark>は財務基盤が安定しており、不況時にも耐えやすく、長期的な健全経営が期待できます。",
+   fb_en:"Correct. Companies with a high equity ratio have a stable financial base, are more resilient during recessions, and are expected to develop soundly in the long term."
+  },
+  {n:14, sec:"財務諸表と企業分析", type:"tf",
+   q:"総資本回転率が0.82（1年決算）の場合の<mark>総資本回転期間</mark>は約14.63か月である。",
+   tf:true,
+   fb:"○正解。<mark>総資本回転期間＝12÷回転率＝12÷0.82≒14.63か月</mark>。1年を12か月として回転率で割ることで回転期間が求められます。",
+   fb_en:"Correct. Total asset turnover period = 12 ÷ turnover ratio = 12 ÷ 0.82 ≈ 14.63 months."
+  },
+  {n:15, sec:"財務諸表と企業分析", type:"tf",
+   q:"<mark>損益分岐点売上高</mark>は10,000百万円である。（売上高25,000円、変動費15,000円、固定費4,000円、利益6,000円　単位：百万円）",
+   tf:false,
+   fb:"×不正解。<mark>損益分岐点売上高＝固定費÷（1－変動費÷売上高）＝4,000÷（1－15,000÷25,000）＝10,000</mark>百万円となりますが、この問題は×です。問題文の設定値を再確認してください。",
+   fb_en:"Wrong. Break-even sales = Fixed costs ÷ (1 - Variable costs ÷ Sales) = 4,000 ÷ (1 - 15,000/25,000) = 10,000 million yen. However, the answer given is incorrect per the source material."
+  },
+];
+
+// =============================================
+// FURIGANA DICTIONARY
+// =============================================
+const FURIGANA = {
+  "有価証券":"ゆうかしょうけん","売買":"ばいばい","媒介":"ばいかい","委託者":"いたくしゃ","計算":"けいさん",
+  "引受":"ひきうけ","顧客":"こきゃく","仲介":"ちゅうかい","成立":"せいりつ","金融":"きんゆう",
+  "業者":"ぎょうしゃ","内閣総理大臣":"ないかくそうりだいじん","登録":"とうろく","金融商品":"きんゆうしょうひん",
+  "取引業":"とりひきぎょう","目的":"もくてき","株券":"かぶけん","債券":"さいけん","支払":"しはらい",
+  "手形":"てがた","小切手":"こぎって","運営":"うんえい","業務":"ぎょうむ","届出":"とどけで",
+  "認可":"にんか","免許":"めんきょ","外務員":"がいむいん","所属":"しょぞく","代わって":"かわって",
+  "裁判":"さいばん","権限":"けんげん","契約":"けいやく","締結":"ていけつ","交付":"こうふ",
+  "書面":"しょめん","特定投資家":"とくていとうしかけ","固有":"こゆう","財産":"ざいさん","分別":"ぶんべつ",
+  "損失":"そんしつ","補填":"ほてん","財産上":"ざいさんじょう","利益":"りえき","提供":"ていきょう",
+  "行為":"こうい","規制":"きせい","適用":"てきよう","除外":"じょがい","引受人":"ひきうけにん",
+  "売却":"ばいきゃく","経過":"けいか","買主":"かいぬし","貸付":"かしつけ","仮装取引":"かそうとりひき",
+  "安定操作":"あんていそうさ","内部者":"ないぶしゃ","会社":"かいしゃ","上場":"じょうじょう",
+  "子会社":"こがいしゃ","役員":"やくいん","重要事実":"じゅうようじじつ","公表":"こうひょう",
+  "中止":"ちゅうし","決定":"けってい","報道機関":"ほうどうきかん","財務諸表":"ざいむしょひょう",
+  "監査役":"かんさやく","監査":"かんさ","公認会計士":"こうにんかいけいし","監査法人":"かんさほうじん",
+  "証明":"しょうめい","大量":"たいりょう","保有":"ほゆう","開示":"かいじ","制度":"せいど",
+  "報告":"ほうこく","割合":"わりあい","縦覧":"じゅうらん","消費者":"しょうひしゃ","取消権":"とりけしけん",
+  "行使":"こうし","当初":"とうしょ","無効":"むこう","犯罪収益":"はんざいしゅうえき","移転":"いてん",
+  "防止":"ぼうし","本人":"ほんにん","書類":"しょるい","確認":"かくにん","記録":"きろく","保存":"ほぞん",
+  "損益":"そんえき","分岐点":"ぶんきてん","権利行使":"けんりこうし","金額":"きんがく","残存":"ざんそん",
+  "期間":"きかん","短期金利":"たんききんり","限月":"げんつき","取引":"とりひき","単位":"たんい",
+  "呼び値":"よびね","弁済":"べんさい","期限":"きげん","受渡":"うけわたし","差金":"さきん","決済":"けっさい",
+  "金利":"きんり","貸株料":"かしかぶりょう","徴収":"ちょうしゅう","品貸料":"しながしりょう","逆日歩":"ぎゃくひぶ",
+  "約定":"やくじょう","保証金":"ほしょうきん","追証":"おいしょう","維持率":"いじりつ","先物":"さきもの",
+  "現物":"げんぶつ","価格変動":"かかくへんどう","裁定":"さいてい","投機":"とうき","理論価格":"りろんかかく",
+  "大阪取引所":"おおさかとりひきじょ","限月":"げんつき","取引最終日":"とりひきさいしゅうび",
+  "特別清算":"とくべつせいさん","数値":"すうち","標準物":"ひょうじゅんぶつ","償還":"しょうかん",
+  "長期国債":"ちょうきこくさい","中期国債":"ちゅうきこくさい","受渡決済":"うけわたしけっさい",
+  "株式会社":"かぶしきがいしゃ","合名会社":"ごうめいがいしゃ","合資会社":"ごうしがいしゃ","合同会社":"ごうどうがいしゃ",
+  "社員":"しゃいん","出資":"しゅっし","義務":"ぎむ","債権者":"さいけんしゃ","直接":"ちょくせつ","連帯":"れんたい",
+  "無限":"むげん","設立":"せつりつ","定款":"ていかん","作成":"さくせい","省略":"しょうりゃく","資本金":"しほんきん",
+  "最低":"さいてい","制度":"せいど","廃止":"はいし","発起人":"ほっきにん","大会社":"だいがいしゃ","負債総額":"ふさいそうがく",
+  "自益権":"じえきけん","共益権":"きょうえきけん","余剰金":"よじょうきん","残余財産":"ざんよざいさん","分配":"ぶんぱい",
+  "少数株主権":"しょうすうかぶぬしけん","単独株主権":"たんどくかぶぬしけん","株主総会":"かぶぬしそうかい",
+  "定時総会":"ていじそうかい","臨時総会":"りんじそうかい","決算期":"けっさんき","成果":"せいか","確認":"かくにん",
+  "開催":"かいさい","普通決議":"ふつうけつぎ","特別決議":"とくべつけつぎ","取締役":"とりしまりやく","選任":"せんにん",
+  "解任":"かいにん","会計監査人":"かいけいかんさにん","報酬":"ほうしゅう","定款の変更":"ていかんのへんこう",
+  "解散":"かいさん","取締役会":"とりしまりやくかい","代理人":"だいりにん","出席":"しゅっせき","議決権":"ぎけつけん",
+  "過半数":"かはんすう","保有":"ほゆう","指名委員会":"しめいいいんかい","監査役":"かんさやく","監査委員会":"かんさいいんかい",
+  "合併":"がっぺい","新設合併":"しんせつがっぺい","吸収合併":"きゅうしゅうがっぺい","分割":"ぶんかつ",
+  "新設分割":"しんせつぶんかつ","吸収分割":"きゅうしゅうぶんかつ","独立":"どくりつ","事業譲渡":"じぎょうじょうと",
+  "譲渡":"じょうと","当然":"とうぜん",
+  "貸借対照表":"たいしゃくたいしょうひょう","損益計算書":"そんえきけいさんしょ","財政状態":"ざいせいじょうたい",
+  "経営成績":"けいえいせいせき","営業利益":"えいぎょうりえき","売上総利益":"うりあげそうりえき",
+  "販売費":"はんばいひ","一般管理費":"いっぱんかんりひ","経常利益":"けいじょうりえき",
+  "営業外収益":"えいぎょうがいしゅうえき","営業外費用":"えいぎょうがいひよう",
+  "配当性向":"はいとうせいこう","当期純利益":"とうきじゅんりえき","配当率":"はいとうりつ",
+  "内部留保":"ないぶりゅうほ","流動比率":"りゅうどうひりつ","流動資産":"りゅうどうしさん",
+  "流動負債":"りゅうどうふさい","当座比率":"とうざひりつ","固定比率":"こていひりつ",
+  "固定資産":"こていしさん","自己資本":"じこしほん","負債比率":"ふさいひりつ",
+  "自己資本比率":"じこしほんひりつ","総資本":"そうしほん","総資本回転率":"そうしほんかいてんりつ",
+  "総資本回転期間":"そうしほんかいてんきかん","損益分岐点売上高":"そんえきぶんきてんうりあげだか",
+  "変動費":"へんどうひ","固定費":"こていひ",
+};
+
+function applyFurigana(text) {
+  let t = text;
+  // Sort by length descending to avoid partial matches
+  const keys = Object.keys(FURIGANA).sort((a,b) => b.length - a.length);
+  keys.forEach(k => {
+    const re = new RegExp(k, 'g');
+    t = t.replace(re, `<ruby>${k}<rt>${FURIGANA[k]}</rt></ruby>`);
+  });
+  return t;
+}
+
+// =============================================
+// APP STATE
+// =============================================
+let lang = 'ja';
+let selectedSecs = ["金商法","オプション","信用取引","先物取引","会社法","財務諸表と企業分析"];
+let selectedCount = 10;
+let doShuffle = true;
+
+let queue = [];
+let skipped = [];
+let wrongData = [];
+let currentIdx = 0;
+let current = null;
+let answered = false;
+let correctCount = 0;
+let wrongCount = 0;
+let isSkipRound = false;
+
+// =============================================
+// INIT
+// =============================================
+window.onload = () => {
+  buildSecChecks();
+};
+
+function buildSecChecks() {
+  const secs = ["金商法","オプション","信用取引","先物取引","会社法","財務諸表と企業分析"];
+  const c = document.getElementById('secChecks');
+  c.innerHTML = '';
+  secs.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'sec-check active';
+    btn.textContent = s;
+    btn.onclick = () => toggleSec(btn, s);
+    c.appendChild(btn);
+  });
+}
+
+function toggleSec(btn, sec) {
+  const active = selectedSecs.includes(sec);
+  if (active && selectedSecs.length === 1) return; // keep at least 1
+  if (active) {
+    selectedSecs = selectedSecs.filter(s => s !== sec);
+    btn.classList.remove('active');
+  } else {
+    selectedSecs.push(sec);
+    btn.classList.add('active');
+  }
+}
+
+function selectCount(btn) {
+  document.querySelectorAll('#countOpts .opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCount = parseInt(btn.dataset.val);
+}
+
+function selectShuffle(btn) {
+  document.querySelectorAll('#shuffleOpts .opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  doShuffle = btn.dataset.val === '1';
+}
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (current && answered) renderQuestion();
+  else if (current) renderQuestion();
+}
+
+// =============================================
+// START
+// =============================================
+function startQuiz(qs) {
+  let pool = qs || QS.filter(q => selectedSecs.includes(q.sec));
+  if (doShuffle) pool = shuffle([...pool]);
+  queue = pool.slice(0, Math.min(selectedCount, pool.length));
+  skipped = [];
+  wrongData = [];
+  correctCount = 0;
+  wrongCount = 0;
+  currentIdx = 0;
+  answered = false;
+  isSkipRound = false;
+
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+
+  loadQuestion();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// =============================================
+// QUESTION RENDER
+// =============================================
+function loadQuestion() {
+  if (currentIdx >= queue.length) {
+    if (skipped.length > 0 && !isSkipRound) {
+      isSkipRound = true;
+      queue = [...skipped];
+      skipped = [];
+      currentIdx = 0;
+      updateHeader();
+    } else {
+      showResult();
+      return;
+    }
+  }
+  current = queue[currentIdx];
+  answered = false;
+  renderQuestion();
+  updateHeader();
+  updateProgress();
+}
+
+function renderQuestion() {
+  const total = queue.length + skipped.length;
+  const done = currentIdx;
+
+  // Section tag
+  document.getElementById('secTag').textContent = current.sec;
+
+  // Question text
+  let qt = current.q;
+  if (lang === 'furigana') qt = applyFurigana(qt);
+  else if (lang === 'en' && current.q_en) qt = current.q_en;
+  document.getElementById('questionText').innerHTML = qt;
+
+  // Buttons
+  const tfDiv = document.getElementById('tfButtons');
+  const mcDiv = document.getElementById('mcChoices');
+  if (current.type === 'tf') {
+    tfDiv.classList.remove('hidden');
+    mcDiv.classList.add('hidden');
+    tfDiv.querySelectorAll('.tf-btn').forEach(b => {
+      b.className = b.classList.contains('maru') ? 'tf-btn maru' : 'tf-btn batu';
+    });
+    document.getElementById('questionCard').classList.remove('answer-revealed');
+  } else {
+    tfDiv.classList.add('hidden');
+    mcDiv.classList.remove('hidden');
+    mcDiv.innerHTML = '';
+    current.choices.forEach((ch, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'mc-btn';
+      btn.innerHTML = `${i+1}. ${ch}`;
+      btn.onclick = () => answerMC(i);
+      mcDiv.appendChild(btn);
+    });
+    document.getElementById('questionCard').classList.remove('answer-revealed');
+  }
+
+  // Feedback
+  const fb = document.getElementById('feedbackCard');
+  fb.classList.remove('show','correct','wrong');
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('skipBtn').classList.remove('hidden');
+}
+
+function updateProgress() {
+  const total = queue.length;
+  const pct = total > 0 ? Math.round((currentIdx / total) * 100) : 0;
+  document.getElementById('progLabel').textContent = `${currentIdx + 1} / ${total}${isSkipRound ? ' (スキップ再出題)' : ''}`;
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progFill').style.width = pct + '%';
+}
+
+function updateHeader() {
+  const stats = document.getElementById('headerStats');
+  const skipCount = skipped.length;
+  stats.innerHTML = `
+    <span class="stat-badge">✅ ${correctCount}</span>
+    <span class="stat-badge">❌ ${wrongCount}</span>
+    ${skipCount > 0 ? `<span class="stat-badge skip">⏭ スキップ: ${skipCount}問</span>` : ''}
+  `;
+}
+
+// =============================================
+// ANSWER
+// =============================================
+function answerTF(userAns) {
+  if (answered) return;
+  answered = true;
+  const correct = current.tf === userAns;
+  showFeedback(correct);
+
+  // style buttons
+  const card = document.getElementById('questionCard');
+  card.classList.add('answer-revealed');
+  const btns = document.querySelectorAll('.tf-btn');
+  btns.forEach(b => {
+    const isMaru = b.classList.contains('maru');
+    const btnVal = isMaru; // true=maru, false=batu
+    if (btnVal === userAns) {
+      b.classList.add(correct ? 'selected-correct' : 'selected-wrong');
+    }
+    if (btnVal === current.tf) {
+      b.classList.add('correct-ans');
+    }
+  });
+
+  if (correct) { correctCount++; recordAnswer(current, true); }
+  else {
+    wrongCount++;
+    wrongData.push({q: current, userAns: userAns ? '○' : '×'});
+    recordAnswer(current, false);
+  }
+  updateHeader();
+}
+
+function answerMC(idx) {
+  if (answered) return;
+  answered = true;
+  const correct = idx === current.correct;
+  showFeedback(correct);
+
+  const card = document.getElementById('questionCard');
+  card.classList.add('answer-revealed');
+  const btns = document.querySelectorAll('.mc-btn');
+  btns.forEach((b, i) => {
+    if (i === idx) b.classList.add(correct ? 'selected-correct' : 'selected-wrong');
+    if (i === current.correct) b.classList.add('correct-ans');
+  });
+
+  if (correct) { correctCount++; recordAnswer(current, true); }
+  else {
+    wrongCount++;
+    wrongData.push({q: current, userAns: current.choices[idx]});
+    recordAnswer(current, false);
+  }
+  updateHeader();
+}
+
+function showFeedback(correct) {
+  const fb = document.getElementById('feedbackCard');
+  const header = document.getElementById('feedbackHeader');
+  const text = document.getElementById('feedbackText');
+
+  fb.classList.add('show', correct ? 'correct' : 'wrong');
+  header.textContent = correct ? '✅ 正解！' : '❌ 不正解';
+
+  let fbText = current.fb;
+  if (lang === 'en' && current.fb_en) fbText = current.fb_en;
+  else if (lang === 'furigana') fbText = applyFurigana(current.fb);
+  text.innerHTML = fbText;
+
+  document.getElementById('nextBtn').classList.remove('hidden');
+  document.getElementById('skipBtn').classList.add('hidden');
+}
+
+// =============================================
+// NAVIGATION
+// =============================================
+function nextQ() {
+  currentIdx++;
+  loadQuestion();
+}
+
+function skipQ() {
+  if (answered) return;
+  skipped.push(current);
+  currentIdx++;
+  updateHeader();
+  loadQuestion();
+}
+
+// =============================================
+// RESULT
+// =============================================
+function showResult() {
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+
+  const total = correctCount + wrongCount;
+  const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+  document.getElementById('scoreBig').textContent = pct + '%';
+  document.getElementById('scoreOk').textContent = correctCount;
+  document.getElementById('scoreNg').textContent = wrongCount;
+  document.getElementById('scoreSk').textContent = skipped.length;
+
+  const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '😊' : '💪';
+  document.getElementById('resultEmoji').textContent = emoji;
+
+  renderReview();
+  updateHeader();
+}
+
+function renderReview() {
+  const list = document.getElementById('reviewList');
+  if (wrongData.length === 0) {
+    list.innerHTML = '<p style="padding:16px;color:#6b7280;">間違えた問題はありません 🎉</p>';
+    return;
+  }
+  list.innerHTML = wrongData.map((d, i) => {
+    const ans = d.q.type === 'tf' ? (d.q.tf ? '○' : '×') : d.q.choices[d.q.correct];
+    return `
+      <div class="review-item">
+        <div class="review-q"><strong>${i+1}.</strong> [${d.q.sec}] ${d.q.q}</div>
+        <div class="review-ans">✅ 正解：${ans}（あなたの回答：${d.userAns}）</div>
+        <div class="review-fb">${d.q.fb}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleReview() {
+  const list = document.getElementById('reviewList');
+  const arrow = document.getElementById('reviewArrow');
+  list.classList.toggle('open');
+  arrow.textContent = list.classList.contains('open') ? '▲' : '▼';
+}
+
+function retryWrong() {
+  if (wrongData.length === 0) { goStart(); return; }
+  startQuiz(wrongData.map(d => d.q));
+}
+
+function goStart() {
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+  document.getElementById('headerStats').innerHTML = '';
+}
+
+function goHome() {
+  // Hide all screens, show start screen — state is preserved
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+}
+
+// =============================================
+// FIREBASE — Auth + Firestore
+// =============================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBZC2P3zqOebm_kec_1gPE3Bglz4_YixKk",
+  authDomain: "gaiumuin-quiz.firebaseapp.com",
+  projectId: "gaiumuin-quiz",
+  storageBucket: "gaiumuin-quiz.firebasestorage.app",
+  messagingSenderId: "1061891132281",
+  appId: "1:1061891132281:web:2a38502472a30d4bbcbda8"
+};
+
+const fbApp  = initializeApp(firebaseConfig);
+const auth   = getAuth(fbApp);
+const db     = getFirestore(fbApp);
+
+let currentUser = null;
+let mistakeBank = {}; // { questionN_sec: { q, fb, tf, count, lastWrong } }
+
+// ---------- Auth ----------
+function toggleAuth() {
+  if (currentUser) {
+    signOut(auth);
+  } else {
+    signInWithPopup(auth, new GoogleAuthProvider());
+  }
+}
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  const bar    = document.getElementById('authBar');
+  const avatar = document.getElementById('authAvatar');
+  const name   = document.getElementById('authName');
+  const btn    = document.getElementById('authActionBtn');
+
+  bar.classList.remove('hidden');
+
+  if (user) {
+    avatar.src = user.photoURL || '';
+    avatar.style.display = user.photoURL ? 'block' : 'none';
+    name.textContent = user.displayName || user.email;
+    btn.textContent  = 'ログアウト';
+    await loadMistakeBank();
+  } else {
+    avatar.style.display = 'none';
+    name.textContent = 'ログインしていません';
+    btn.textContent  = 'Googleでログイン';
+    mistakeBank = {};
+    hidereviewModeCard();
+  }
+});
+
+// ---------- Firestore read/write ----------
+async function loadMistakeBank() {
+  if (!currentUser) return;
+  const ref  = doc(db, 'users', currentUser.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    mistakeBank = snap.data().mistakes || {};
+  } else {
+    mistakeBank = {};
+  }
+  renderReviewModeCard();
+}
+
+async function saveMistakeBank() {
+  if (!currentUser) return;
+  const ref = doc(db, 'users', currentUser.uid);
+  await setDoc(ref, {
+    mistakes: mistakeBank,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+}
+
+// Called after each answer
+async function recordAnswer(qObj, isCorrect) {
+  if (!currentUser) return;
+  const key = `q${qObj.n}_${qObj.sec}`;
+  if (!isCorrect) {
+    // Add/update mistake
+    const existing = mistakeBank[key] || { count: 0 };
+    mistakeBank[key] = {
+      n:    qObj.n,
+      sec:  qObj.sec,
+      q:    qObj.q,
+      fb:   qObj.fb,
+      fb_en: qObj.fb_en || '',
+      tf:   qObj.tf,
+      type: qObj.type,
+      count: (existing.count || 0) + 1,
+      lastWrong: new Date().toISOString()
+    };
+  } else {
+    // Correct answer: remove from mistake bank if existed
+    if (mistakeBank[key]) {
+      delete mistakeBank[key];
+    }
+  }
+  await saveMistakeBank();
+  renderReviewModeCard();
+}
+
+// ---------- Review Mode Card ----------
+function renderReviewModeCard() {
+  const card  = document.getElementById('reviewModeCard');
+  const count = document.getElementById('reviewModeCount');
+  const keys  = Object.keys(mistakeBank);
+  if (!currentUser || keys.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'flex';
+  count.textContent  = `${keys.length}問の間違い問題が蓄積されています`;
+}
+
+function hidereviewModeCard() {
+  document.getElementById('reviewModeCard').style.display = 'none';
+}
+
+function startReviewMode() {
+  const keys = Object.keys(mistakeBank);
+  if (keys.length === 0) return;
+  // Build QS-compatible objects from mistakeBank
+  const reviewQs = keys.map(k => {
+    const m = mistakeBank[k];
+    return { n: m.n, sec: m.sec, type: m.type || 'tf', q: m.q, tf: m.tf, fb: m.fb, fb_en: m.fb_en || '' };
+  });
+  // Shuffle
+  reviewQs.sort(() => Math.random() - 0.5);
+  startQuiz(reviewQs);
+}
+
+// =============================================
+// EXPOSE ALL FUNCTIONS TO GLOBAL (required for type="module")
+// =============================================
+window.answerTF = answerTF;
+window.goHome = goHome;
+window.goStart = goStart;
+window.nextQ = nextQ;
+window.retryWrong = retryWrong;
+window.selectCount = selectCount;
+window.selectShuffle = selectShuffle;
+window.setLang = setLang;
+window.skipQ = skipQ;
+window.startQuiz = startQuiz;
+window.startReviewMode = startReviewMode;
+window.toggleAuth = toggleAuth;
+window.toggleReview = toggleReview;
+window.answerMC = answerMC;
+window.buildSecChecks = buildSecChecks;
+
+</script>
+</body>
+</html>
