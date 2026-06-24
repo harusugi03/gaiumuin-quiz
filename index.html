@@ -724,7 +724,7 @@ ruby rt { font-size: 0.55em; }
 <!-- START SCREEN -->
 <div id="startScreen">
   <!-- AVATAR CARD -->
-  <div class="avatar-section" id="avatarSection" style="display:none">
+  <div class="avatar-section" id="avatarSection">
     <svg class="avatar-pixel" id="avatarSvg" width="96" height="108" viewBox="0 0 80 112"></svg>
     <div class="avatar-info">
       <div class="avatar-name" id="avatarLvLabel">Lv 1</div>
@@ -1658,6 +1658,7 @@ let isSkipRound = false;
 // =============================================
 window.onload = () => {
   buildSecChecks();
+  loadPlayerXp();  // show avatar immediately on load
 };
 
 function buildSecChecks() {
@@ -2242,17 +2243,30 @@ let playerLv = 1;
 let isReviewMode = false;
 
 async function loadPlayerXp() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    // Load from localStorage fallback
+    playerXp = parseInt(localStorage.getItem('playerXp') || '0');
+    playerLv = levelFromXp(playerXp);
+    renderAvatar();
+    return;
+  }
   const ref  = doc(db, 'users', currentUser.uid);
   const snap = await getDoc(ref);
   if (snap.exists()) {
-    playerXp = snap.data().xp || 0;
+    const cloudXp = snap.data().xp || 0;
+    const localXp = parseInt(localStorage.getItem('playerXp') || '0');
+    // Take the higher value (don't lose progress)
+    playerXp = Math.max(cloudXp, localXp);
+  } else {
+    playerXp = parseInt(localStorage.getItem('playerXp') || '0');
   }
   playerLv = levelFromXp(playerXp);
   renderAvatar();
 }
 
 async function savePlayerXp() {
+  // Always save to localStorage as local backup
+  localStorage.setItem('playerXp', playerXp);
   if (!currentUser) return;
   const ref = doc(db, 'users', currentUser.uid);
   await setDoc(ref, { xp: playerXp }, { merge: true });
@@ -2260,10 +2274,8 @@ async function savePlayerXp() {
 
 
 function awardXpSafe(amount, label) {
-  if (typeof awardXp === 'function' && currentUser) {
-    const bonus = isReviewMode ? 5 : 0;
-    awardXp(amount + bonus, label);
-  }
+  const bonus = isReviewMode ? 5 : 0;
+  awardXp(amount + bonus, label);
 }
 
 function awardXp(amount, label) {
@@ -2301,8 +2313,7 @@ function closeLevelUp() {
 
 function renderAvatar() {
   const section = document.getElementById('avatarSection');
-  if (!currentUser) { section.style.display = 'none'; return; }
-  section.style.display = 'flex';
+  section.style.display = 'flex';  // always show
 
   const lv = playerLv;
   const stage = getAvatarStage(lv);
