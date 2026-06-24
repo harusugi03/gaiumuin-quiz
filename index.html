@@ -558,17 +558,32 @@ body {
 ============================================= */
 .avatar-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 20px;
+  padding: 20px 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--lime);
+  border-radius: 20px 20px 0 0;
 }
 .avatar-pixel {
   flex-shrink: 0;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+.avatar-info {
+  width: 100%;
+  text-align: center;
 }
 .avatar-info { flex: 1; min-width: 0; }
 .avatar-name {
@@ -710,14 +725,15 @@ ruby rt { font-size: 0.55em; }
 <div id="startScreen">
   <!-- AVATAR CARD -->
   <div class="avatar-section" id="avatarSection" style="display:none">
-    <svg class="avatar-pixel" id="avatarSvg" width="64" height="72" viewBox="0 0 80 112"></svg>
+    <svg class="avatar-pixel" id="avatarSvg" width="96" height="108" viewBox="0 0 80 112"></svg>
     <div class="avatar-info">
       <div class="avatar-name" id="avatarLvLabel">Lv 1</div>
       <div class="avatar-title" id="avatarTitle">見習い</div>
-      <div class="xp-bar-wrap">
-        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+      <div class="xp-bar-wrap" style="margin-top:10px">
+        <div class="xp-bar-bg" style="height:8px"><div class="xp-bar-fill" id="xpBarFill" style="width:0%;height:8px"></div></div>
         <div class="xp-label" id="xpLabel">0 XP</div>
       </div>
+      <div style="font-size:0.68em;color:var(--muted);margin-top:4px" id="xpNextLabel"></div>
     </div>
   </div>
 
@@ -818,35 +834,41 @@ ruby rt { font-size: 0.55em; }
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-// Firebase compat init
-const firebaseConfig = {
-  apiKey: "AIzaSyBZC2P3zqOebm_kec_1gPE3Bglz4_YixKk",
-  authDomain: "gaiumuin-quiz.firebaseapp.com",
-  projectId: "gaiumuin-quiz",
-  storageBucket: "gaiumuin-quiz.firebasestorage.app",
-  messagingSenderId: "1061891132281",
-  appId: "1:1061891132281:web:2a38502472a30d4bbcbda8"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
-// Compat API aliases to match modular API usage in code
-const GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
-function signInWithPopup(a, p) { return a.signInWithPopup(p); }
-function signOut(a) { return a.signOut(); }
-function onAuthStateChanged(a, cb) { return a.onAuthStateChanged(cb); }
-function doc(d, col, id) { return d.collection(col).doc(id); }
+// Firebase compat init — safe wrapper for local/offline use
+let auth, db, GoogleAuthProvider;
+function signInWithPopup(a, p) { return a ? a.signInWithPopup(p) : Promise.reject('no auth'); }
+function signOut(a) { return a ? a.signOut() : Promise.resolve(); }
+function onAuthStateChanged(a, cb) { if (a) a.onAuthStateChanged(cb); }
+function doc(d, col, id) { return d ? d.collection(col).doc(id) : null; }
 async function getDoc(ref) {
+  if (!ref) return { exists: () => false, data: () => ({}) };
   const snap = await ref.get();
   return { exists: () => snap.exists, data: () => snap.data() };
 }
 function setDoc(ref, data, opts) {
+  if (!ref) return Promise.resolve();
   return opts && opts.merge ? ref.set(data, { merge: true }) : ref.set(data);
 }
-function serverTimestamp() { return firebase.firestore.FieldValue.serverTimestamp(); }
-</script>
+function serverTimestamp() {
+  return (typeof firebase !== 'undefined') ? firebase.firestore.FieldValue.serverTimestamp() : new Date();
+}
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyBZC2P3zqOebm_kec_1gPE3Bglz4_YixKk",
+    authDomain: "gaiumuin-quiz.firebaseapp.com",
+    projectId: "gaiumuin-quiz",
+    storageBucket: "gaiumuin-quiz.firebasestorage.app",
+    messagingSenderId: "1061891132281",
+    appId: "1:1061891132281:web:2a38502472a30d4bbcbda8"
+  };
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+  GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
+} catch(e) {
+  console.warn('Firebase unavailable (offline mode):', e.message);
+}
 
-<script>
 // QUESTION BANK
 // =============================================
 const QS = [
@@ -1687,6 +1709,7 @@ function setLang(l) {
 // START
 // =============================================
 function startQuiz(qs) {
+  if (!qs) isReviewMode = false;
   let pool = qs || QS.filter(q => selectedSecs.includes(q.sec));
   if (doShuffle) pool = shuffle([...pool]);
   queue = pool.slice(0, Math.min(selectedCount, pool.length));
@@ -1822,11 +1845,12 @@ function answerTF(userAns) {
     }
   });
 
-  if (correct) { correctCount++; recordAnswer(current, true); }
+  if (correct) { correctCount++; recordAnswer(current, true); awardXpSafe(15, '正解！'); }
   else {
     wrongCount++;
     wrongData.push({q: current, userAns: userAns ? '○' : '×'});
     recordAnswer(current, false);
+    awardXpSafe(5, '挑戦');
   }
   updateHeader();
 }
@@ -1845,11 +1869,12 @@ function answerMC(idx) {
     if (i === current.correct) b.classList.add('correct-ans');
   });
 
-  if (correct) { correctCount++; recordAnswer(current, true); }
+  if (correct) { correctCount++; recordAnswer(current, true); awardXpSafe(15, '正解！'); }
   else {
     wrongCount++;
     wrongData.push({q: current, userAns: current.choices[idx]});
     recordAnswer(current, false);
+    awardXpSafe(5, '挑戦');
   }
   updateHeader();
 }
@@ -2041,6 +2066,7 @@ onAuthStateChanged(auth, async user => {
     name.textContent = user.displayName || user.email;
     btn.textContent  = 'ログアウト';
     await loadMistakeBank();
+    await loadPlayerXp();
   } else {
     avatar.style.display = 'none';
     name.textContent = 'ログインしていません';
@@ -2155,6 +2181,7 @@ function renderReviewModeCard() {
 }
 
 function startReviewMode() {
+  isReviewMode = true;
   const dueKeys = Object.keys(mistakeBank).filter(k =>
     mistakeBank[k].level < 5 && isDue(mistakeBank[k])
   );
@@ -2231,6 +2258,14 @@ async function savePlayerXp() {
   await setDoc(ref, { xp: playerXp }, { merge: true });
 }
 
+
+function awardXpSafe(amount, label) {
+  if (typeof awardXp === 'function' && currentUser) {
+    const bonus = isReviewMode ? 5 : 0;
+    awardXp(amount + bonus, label);
+  }
+}
+
 function awardXp(amount, label) {
   const oldLv = playerLv;
   playerXp += amount;
@@ -2275,12 +2310,23 @@ function renderAvatar() {
   const nextLvXp = lv < 50 ? totalXpForLevel(lv + 1) : totalXpForLevel(50);
   const pct = lv >= 50 ? 100 : Math.min(100, Math.round((playerXp - curLvXp) / (nextLvXp - curLvXp) * 100));
 
-  document.getElementById('avatarLvLabel').textContent = 'Lv ' + lv;
-  document.getElementById('avatarTitle').textContent = stage.title;
+  document.getElementById('avatarLvLabel').textContent = 'Lv ' + lv + '  ' + stage.title;
+  document.getElementById('avatarTitle').textContent = '⭐'.repeat(Math.min(lv, 5)) + (lv >= 50 ? '👑' : '');
   document.getElementById('avatarTitle').style.color = stage.color;
+  document.getElementById('avatarLvLabel').style.color = stage.color;
   document.getElementById('xpBarFill').style.width = pct + '%';
   document.getElementById('xpBarFill').style.background = stage.color;
   document.getElementById('xpLabel').textContent = playerXp.toLocaleString() + ' XP';
+  const xpNextEl = document.getElementById('xpNextLabel');
+  if (xpNextEl) {
+    if (lv >= 50) {
+      xpNextEl.textContent = '🎓 最高レベル達成！';
+      xpNextEl.style.color = '#FFD700';
+    } else {
+      const needed = nextLvXp - playerXp;
+      xpNextEl.textContent = 'Lv' + (lv+1) + 'まであと ' + needed.toLocaleString() + ' XP';
+    }
+  }
 
   // Draw pixel avatar
   const svgEl = document.getElementById('avatarSvg');
@@ -2462,42 +2508,8 @@ function drawMaster(s) {
   ], s);
 }
 
-// Hook into answer recording to award XP
-const _origRecordAnswer = recordAnswer;
-async function recordAnswer(qObj, isCorrect) {
-  await _origRecordAnswer(qObj, isCorrect);
-  // Award XP
-  const bonus = isReviewMode && isCorrect ? XP_REVIEW_BONUS : 0;
-  if (isCorrect) {
-    awardXp(XP_CORRECT + XP_ANSWER + bonus, isReviewMode ? '復習ボーナス！' : '正解！');
-  } else {
-    awardXp(XP_ANSWER, '挑戦');
-  }
-}
-
-// Override startReviewMode to set flag
-const _origStartReviewMode = startReviewMode;
-function startReviewMode() {
-  isReviewMode = true;
-  _origStartReviewMode();
-}
-const _origStartQuiz = startQuiz;
-function startQuiz(qs) {
-  if (!qs) isReviewMode = false; // normal quiz resets flag
-  _origStartQuiz(qs);
-}
-
-// Load XP when user logs in
-const _origLoadMistakeBank = loadMistakeBank;
-async function loadMistakeBank() {
-  await _origLoadMistakeBank();
-  await loadPlayerXp();
-}
-
 // Expose new functions
 window.closeLevelUp = closeLevelUp;
-window.startReviewMode = startReviewMode;
-window.startQuiz = startQuiz;
 
 </script>
 </body>
